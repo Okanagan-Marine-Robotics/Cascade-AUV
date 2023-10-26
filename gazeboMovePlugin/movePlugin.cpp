@@ -15,7 +15,7 @@ using namespace sim;
 using namespace math;
 
 gz::transport::Node node;
-std::string topic = "/box/cmd_vel";
+std::string topic = "/box/cmd_vel", modelName = "box";
 gz::msgs::Twist msg;
 
 void movePlugin::onTopicReceive(const gz::msgs::Twist &temp_msg){
@@ -25,10 +25,10 @@ void movePlugin::onTopicReceive(const gz::msgs::Twist &temp_msg){
 void movePlugin::PreUpdate(const gz::sim::UpdateInfo &_info,
     gz::sim::EntityComponentManager &_ecm){
     if(!gotBox){
-        std::unordered_set<gz::sim::v7::Entity> set=gz::sim::entitiesFromScopedName("box",_ecm);	
+        std::unordered_set<gz::sim::v7::Entity> set=gz::sim::entitiesFromScopedName(modelName,_ecm);	
         for (const auto& elem : set)
             if(_ecm.HasEntity(elem)){
-                gzmsg << "Got Entity Box!"<<'\n';
+                gzmsg << "Got Entity!"<<'\n';
                 box=Link(elem);
                 if (!node.Subscribe(topic, onTopicReceive)){
                     gzmsg << "Error subscribing to topic [" << topic << "]" << std::endl;

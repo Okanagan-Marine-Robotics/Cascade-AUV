@@ -18,6 +18,7 @@ class Student(object):
         self.name = name
         self.hours_studied = 0
 
+        # Initialize the state machine with states and transitions, setting initial state to "asleep"
         machine = Machine(
             model=self,
             states=Student.states,
@@ -25,11 +26,16 @@ class Student(object):
             initial="asleep",
         )
 
+        # Add custom transitions and specify after callbacks
+        # Transition from in_class or at_home to studying when the student starts studying
         machine.add_transition(
             "study", ["in_class", "at_home"], "studying", after="studiedHours"
         )
+
+        # Transition from studying to itself, indicating the student keeps studying, and update study hours
         machine.add_transition("keep_studying", "studying", "=", after="studiedHours")
 
+    # Callback function to update the number of hours studied
     def studiedHours(self):
         self.hours_studied += 1
         print(self.name + " has studied for " + str(self.hours_studied) + " hours")

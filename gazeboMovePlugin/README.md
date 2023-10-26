@@ -19,10 +19,18 @@ std::string topic = "/box/cmd_vel", modelName = "box";
 std::string topic = "/your_name/cmd_vel", modelName = "your_name";
 ```
 
+### make build folder and compile
+```bash
+mkdir build
+cd build
+cmake ..
+make
+```
+
 ### run GZ_ROS2 Topic Bridge:
 ```
 (add command)
 ```
 
-now you can publish Twist Messages on your ros2 topic and it will move the gz model
+Now you can publish Twist Messages on your ros2 topic, which will move the gazebo model!
 

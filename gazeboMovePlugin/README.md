@@ -10,13 +10,14 @@
 (add command)
 ```
 
-### change model name to look for in movePlugin.cpp
+### change model and topic name
 ```
-(add command)
-```
+movePlugin.cpp:
 
-### change topic name in movePlugin.cpp
-(default value: "/box/cmd_vel")
+std::string topic = "/box/cmd_vel", modelName = "box";
+->
+std::string topic = "/your_name/cmd_vel", modelName = "your_name";
+```
 
 ### run GZ_ROS2 Topic Bridge:
 ```

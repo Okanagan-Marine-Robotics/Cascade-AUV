@@ -21,7 +21,6 @@ namespace move_Plugin
         public: static void onTopicReceive(const gz::msgs::Twist &msg);
             bool gotBox=false;
              gz::sim::v7::Link box;
-            //static gz::msgs::Twist msg;
   };
 }
 #endif

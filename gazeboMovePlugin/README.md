@@ -2,13 +2,18 @@
 ---
 ### Copy code into some directory (probably in your ros2 package)
 ```bash
-mkdir gz_movePlugin
-cd gz_movePlugin
+cp ~/your_Github_Dir/gazeboMovePlugin ~/your_Ros2_pkg/gazeboMovePlugin
 ```
 
 ### export directory to GZ_SIM_PLUGIN Path
 ```bash
 (add command)
+```
+### add plugin to your models sdf file
+```
+<plugin>
+  (add code)
+</plugin>
 ```
 
 ### change model and topic name

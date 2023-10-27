@@ -55,3 +55,27 @@ print(Gokul.state)
 
 Gokul.keep_studying()
 print(Gokul.state)
+
+
+
+
+# 1. initial state
+# -- moving side to side and looking for gate
+# 2. found gate
+# -- move towards gate
+# 3. reached gate
+# -- detect image and go through correct gate
+# 4. arrow state
+# -- looking for an arrow
+# 5. found arrow
+# -- follow arrow
+# 6. reached end of arrow
+# -- find buoy and move towards it
+# 7. reached buoy
+# -- detect correct image and touch it
+# 8. frequency state
+# -- looking for frequency
+# 9. found frequency
+# -- move towards frequency
+# 10. reached frequency
+# -- surface and end

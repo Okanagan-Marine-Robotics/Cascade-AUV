@@ -1,2 +1,6 @@
 .DS_Store
 .vscode
+build/
+.cmake
+.make
+CMakeFiles/

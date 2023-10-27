@@ -4,8 +4,10 @@
 #include <gz/msgs.hh>
 #include <gz/transport.hh>
 #include "gz/sim/Util.hh"
+#include <gz/sim/Types.hh>
 #include <gz/math/Vector3.hh>
 #include <gz/plugin/Register.hh>
+#include <chrono>
 
 #include "movePlugin.hpp"
 
@@ -17,9 +19,17 @@ using namespace math;
 gz::transport::Node node;
 std::string topic = "/box/cmd_vel", modelName = "box";
 gz::msgs::Twist msg;
+Vector3 lin=Vector3(0.0,0.0,0.0),ang=(0.0,0.0,0.0);
+std::chrono::time_point lastTime=std::chrono::steady_clock::now();
+bool gotBox=false;
+gz::sim::v7::Link box;
+std::chrono::duration<double, std::milli> topicWaitTime ms(100);
 
 void movePlugin::onTopicReceive(const gz::msgs::Twist &temp_msg){
     msg=gz::msgs::Twist(temp_msg);
+    lin=Vector3(msg.linear().x(),msg.linear().y(),msg.linear().z());
+    ang=Vector3(msg.angular().x(),msg.angular().y(),msg.angular().z());
+    lastTime=std::chrono::steady_clock::now();
 }
 
 void movePlugin::PreUpdate(const gz::sim::UpdateInfo &_info,
@@ -39,8 +49,15 @@ void movePlugin::PreUpdate(const gz::sim::UpdateInfo &_info,
     else{
         //change to only apply velocity if constantly being published,
         //maybe record time of last subscription callback and reset velocity to 0 after 100ms or so
-        box.SetLinearVelocity(_ecm,Vector3(msg.linear().x(),msg.linear().y(),msg.linear().z()));
-        box.SetAngularVelocity(_ecm,Vector3(msg.angular().x(),msg.angular().y(),msg.angular().z()));
+        box.SetLinearVelocity(_ecm,lin);
+        box.SetAngularVelocity(_ecm,ang);
+    }
+    if(std::chrono::steady_clock::now()-lastTime>topicWaitTime){
+        lin.set(0.0,0.0,0.0);
+        ang.set(0.0,0.0,0.0);
+        lastTime=std::chrono::steady_clock::now();
+        //resets lastTime to current time to not waste resources 
+        //reseting lin and ang Vectors every iteration
     }
 }
 

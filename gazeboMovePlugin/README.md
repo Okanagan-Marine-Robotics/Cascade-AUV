@@ -42,9 +42,9 @@ ros2 run ros_gz_bridge parameter_bridge /box/cmd_vel@geometry_msgs/msg/Twist@gz.
 ```
 
 ### publish to ros topic via cli after launching gz sim 
-'''bash
+```bash
 ros2 topic pub /box/cmd_vel geometry_msgs/msg/Twist "{linear: {x: 2.0, y: 0.0, z: 0.0}, angular: {x: 0.0, y: 0.0, z: 1.8}}" -r 60
-'''
+```
 
 Now you can publish Twist Messages on your ros2 topic, which will move the gazebo model!
 

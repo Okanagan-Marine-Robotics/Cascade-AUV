@@ -1,6 +1,8 @@
 # Twist Ros2_to_GZ_SIM v1.0
 ---
-## This Plugin is designed to allow you to move a gz model using simple Twist commands directly from ros2 using a ros_gz bridge
+This Plugin is designed to allow you to move a gz model using simple Twist commands directly from ros2 using a ros_gz bridge
+
+##Installation and Use Instructions
 
 ### Copy code into some directory (probably in your ros2 package)
 ```bash

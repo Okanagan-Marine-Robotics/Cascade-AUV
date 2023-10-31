@@ -1,61 +1,96 @@
 from transitions import Machine
+import time
+import random
 
-
-class Student(object):
-    # Defines all the states the student can be in
-    states = ["asleep", "in_class", "studying", "at_home", "oiled_up"]
-
-    # Defines the actions that allow a student to change states
-    transitions = [
-        ["alarm_rings", "asleep", "at_home"],
-        ["catch_the_bus", "at_home", "in_class"],
-        ["go_home", "in_class", "at_home"],
-        ["sleep", ["at_home", "oiled_up"], "asleep"],
-        ["oil_up", "at_home", "oiled_up"],
+# Define the Robosub class
+class Robosub(object):
+    # Define possible states for the state machine
+    states = [
+        "initial_state", 
+        "found_gate", 
+        "reached_gate", 
+        "arrow_state", 
+        "found_arrow", 
+        "end_of_arrow", 
+        "reached_buoy", 
+        "frequency_state", 
+        "found_frequency", 
+        "reached_frequency",
+        "goal",
+        "emergency"
     ]
 
-    def __init__(self, name):
-        self.name = name
-        self.hours_studied = 0
+    # Define transitions between states and associated actions
+    transitions = [
+        ["searching_gate", "initial_state", "found_gate"],
+        ["move_to_gate", "found_gate", "reached_gate"],
+        ["detect_arrow", "reached_gate", "arrow_state"],
+        ["following_arrow", "arrow_state", "found_arrow"],
+        ["arrow_path_completed", "found_arrow", "end_of_arrow"],
+        ["found_buoy", "end_of_arrow", "reached_buoy"],
+        ["searching_frequency", "reached_buoy", "frequency_state"],
+        ["follow_frequency", "frequency_state", "found_frequency"],
+        ["at_frequency", "found_frequency", "reached_frequency"],
+        ["reach_goal", "reached_frequency", "goal"],
+        ["emergency_exit", "*", "emergency"]  
+    ]
 
-        # Initialize the state machine with states and transitions, setting initial state to "asleep"
-        machine = Machine(
+    # Initialize the Robosub class
+    def __init__(self):
+        # Initialize the state machine with states, transitions, and initial state
+        self.machine = Machine(
             model=self,
-            states=Student.states,
-            transitions=Student.transitions,
-            initial="asleep",
+            states=Robosub.states,
+            transitions=Robosub.transitions,
+            initial="initial_state",
+            after_state_change="on_state_change"
         )
 
-        # Add custom transitions and specify after callbacks
-        # Transition from in_class or at_home to studying when the student starts studying
-        machine.add_transition(
-            "study", ["in_class", "at_home"], "studying", after="studiedHours"
-        )
+    # Method to handle state transitions
+    def set_transitions(self):
+        # If the current state is "goal", do nothing and return
+        if self.state == "goal":
+            return
+        # Define actions associated with different states
+        actions = {
+            "initial_state": self.searching_gate,
+            "found_gate": self.move_to_gate,
+            "reached_gate": self.detect_arrow,
+            "arrow_state": self.following_arrow,
+            "found_arrow": self.arrow_path_completed,
+            "end_of_arrow": self.found_buoy,
+            "reached_buoy": self.searching_frequency,
+            "frequency_state": self.follow_frequency,
+            "found_frequency": self.at_frequency,
+            "reached_frequency": self.reach_goal,
+        }
+        # Get the action associated with the current state
+        action = actions.get(self.state)
+        # If there is an action associated with the current state, execute it
+        if action:
+            action()
 
-        # Transition from studying to itself, indicating the student keeps studying, and update study hours
-        machine.add_transition("keep_studying", "studying", "=", after="studiedHours")
+    # Method called after each state change
+    def on_state_change(self):
+        # There is a 10% chance any given action in a state fails and the emergency actions activate
+        # If the current state is not "emergency", check if a failure occurs
+        if not self.state == "emergency":
+            if random.random() < 0.1:
+                self.emergency_exit()  # Activate emergency actions with 10% probability
+        # Print the current state after each state change
+        print("entering", self.state)
 
-    # Callback function to update the number of hours studied
-    def studiedHours(self):
-        self.hours_studied += 1
-        print(self.name + " has studied for " + str(self.hours_studied) + " hours")
+    # Method to handle the emergency state
+    def emergency_state(self):
+        self.emergency_exit()  # Trigger emergency actions
 
+# Create an instance of the Robosub class
+sub = Robosub()
+print(sub.state)  # Print the initial state of the state machine
 
-Gokul = Student("Gokul")
-print(Gokul.state)
-
-Gokul.alarm_rings()
-print(Gokul.state)
-
-Gokul.catch_the_bus()
-print(Gokul.state)
-
-Gokul.study()
-print(Gokul.state)
-
-Gokul.keep_studying()
-print(Gokul.state)
-
+# Run the state machine until it reaches either the "goal" or "emergency" state
+while sub.state not in ["goal", "emergency"]:
+    sub.set_transitions()  # Execute state transitions
 
 
 

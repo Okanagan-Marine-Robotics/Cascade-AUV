@@ -19,8 +19,7 @@ namespace move_Plugin
                 const gz::sim::EntityComponentManager &_ecm) override;
 
         public: static void onTopicReceive(const gz::msgs::Twist &msg);
-            bool gotBox=false;
-             gz::sim::v7::Link box;
+            
   };
 }
 #endif

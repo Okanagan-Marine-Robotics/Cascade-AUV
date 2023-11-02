@@ -19,7 +19,7 @@ using namespace math;
 gz::transport::Node node;
 std::string topic = "/box/cmd_vel", modelName = "box";
 gz::msgs::Twist msg;
-Vector3 lin=Vector3(0.0,0.0,0.0),ang=Vector3(0.0,0.0,0.0);
+Vector3 lin=Vector3(1.0,0.0,0.0),ang=Vector3(0.0,0.0,0.0);
 std::chrono::time_point lastTime=std::chrono::steady_clock::now();
 bool gotBox=false;
 gz::sim::v7::Link box;
@@ -30,6 +30,7 @@ void movePlugin::onTopicReceive(const gz::msgs::Twist &temp_msg){
     lin=Vector3(msg.linear().x(),msg.linear().y(),msg.linear().z());
     ang=Vector3(msg.angular().x(),msg.angular().y(),msg.angular().z());
     lastTime=std::chrono::steady_clock::now();
+    gzmsg << "Got Twist Message!"<<'\n';
 }
 
 void movePlugin::PreUpdate(const gz::sim::UpdateInfo &_info,
@@ -43,6 +44,9 @@ void movePlugin::PreUpdate(const gz::sim::UpdateInfo &_info,
                 if (!node.Subscribe(topic, onTopicReceive)){
                     gzmsg << "Error subscribing to topic [" << topic << "]" << std::endl;
                 }
+                else {
+                    gzmsg << "subscribing to topic [" << topic << "]" << std::endl;
+                }
                 gotBox=true;
             }
     }
@@ -53,8 +57,8 @@ void movePlugin::PreUpdate(const gz::sim::UpdateInfo &_info,
         box.SetAngularVelocity(_ecm,ang);
     }
     if(std::chrono::steady_clock::now()-lastTime>topicWaitTime){
-        lin.Set(0.0,0.0,0.0);
-        ang.Set(0.0,0.0,0.0);
+        //lin.Set(0.0,0.0,0.0);
+        //ang.Set(0.0,0.0,0.0);
         lastTime=std::chrono::steady_clock::now();
         //resets lastTime to current time to not waste resources 
         //reseting lin and ang Vectors every iteration

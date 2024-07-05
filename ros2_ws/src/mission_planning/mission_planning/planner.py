@@ -83,31 +83,39 @@ class move_1m(MovementBehaviour):
         msg.data1 = Vector3(x=0.0, y=0.0, z=0.0)  # No rotation
 
 
-class rise_1m(MovementBehaviour):
+class rise(MovementBehaviour):
     def __init__(self, name):
-        super(rise_1m, self).__init__(name, MovementCommand.MOVE_RELATIVE)
+        super(rise, self).__init__(name, MovementCommand.MOVE_RELATIVE)
     
     def set_command_data(self, msg):
-        msg.data0 = Vector3(x=0.0, y=0.0, z=1.0)  # Rise by 1 meter
+        msg.data0 = Vector3(x=0.0, y=0.0, z=0.5)  # Rise by 1 meter
         msg.data1 = Vector3(x=0.0, y=0.0, z=0.0)  # No rotation
 
 
-class fall_1m(MovementBehaviour):
+class fall(MovementBehaviour):
     def __init__(self, name):
-        super(fall_1m, self).__init__(name, MovementCommand.MOVE_RELATIVE)
+        super(fall, self).__init__(name, MovementCommand.MOVE_RELATIVE)
     
     def set_command_data(self, msg):
-        msg.data0 = Vector3(x=0.0, y=0.0, z=-1.0)  # Fall by 1 meter
+        msg.data0 = Vector3(x=0.0, y=0.0, z=-0.5)  # Fall by 1 meter
         msg.data1 = Vector3(x=0.0, y=0.0, z=0.0)  # No rotation
 
 
-class turn90cw(MovementBehaviour):
+class turncw(MovementBehaviour):
     def __init__(self, name):
-        super(turn90cw, self).__init__(name, MovementCommand.MOVE_RELATIVE)
+        super(turncw, self).__init__(name, MovementCommand.MOVE_RELATIVE)
     
     def set_command_data(self, msg):
         msg.data0 = Vector3(x=0.0, y=0.0, z=0.0)  # No linear movement
-        msg.data1 = Vector3(x=0.0, y=0.0, z=90.0)  # Turn 90 degrees clockwise
+        msg.data1 = Vector3(x=0.0, y=0.0, z=-30.0)  # Turn 30 degrees clockwise
+
+class turnccw(MovementBehaviour):
+    def __init__(self, name):
+        super(turnccw, self).__init__(name, MovementCommand.MOVE_RELATIVE)
+    
+    def set_command_data(self, msg):
+        msg.data0 = Vector3(x=0.0, y=0.0, z=0.0)  # No linear movement
+        msg.data1 = Vector3(x=0.0, y=0.0, z=30.0)  # Turn 30 degrees clockwise
 
 
 class move_to_gate(MovementBehaviour):
@@ -185,28 +193,24 @@ def main(args=None):
     sequence4.add_child(move_tosq4)
     sequence4.add_child(forwardsq4)
     
-    fallsq2 = fall_1m("fallsq2")
-    turn90cwsq2 = turn90cw("turn90cwsq2")
+    fallsq2 = fall("fallsq2")
+    risesq2 = rise("risesq2")
+    turncwsq2 = turncw("turncwsq2")
+    turnccwsq2 = turnccw("turnccwsq2")
+    turnccwsq2_2 = turnccw("turnccwsq2_2")
     found_gatesq2 = found_gate("found_gatesq2")
     
     sequence2 = Sequence(name = "sequence2", memory = True)
-    sequence2.add_child(turn90cwsq2)
+
     sequence2.add_child(fallsq2)
+    sequence2.add_child(turncwsq2)
+    sequence2.add_child(turnccwsq2)
+    sequence2.add_child(turnccwsq2_2)
+    sequence2.add_child(risesq2)
     sequence2.add_child(found_gatesq2)
-    
-    
-    risesq3 = rise_1m("risesq3")
-    turn90cwsq3 = turn90cw("turn90sqcw3")
-    found_gatesq3 = found_gate("found_gatesq3")
-    
-    sequence3 = Sequence(name = "sequence3", memory = True)
-    sequence3.add_child(risesq3)
-    sequence3.add_child(turn90cwsq3)
-    sequence3.add_child(found_gatesq3)
     
     selector2 = Selector(name = "selector2", memory = True)
     selector2.add_child(sequence2)
-    selector2.add_child(sequence3)
     
     decorator1 = Retry(name = "decorator1", child = selector2, num_failures=8)
     

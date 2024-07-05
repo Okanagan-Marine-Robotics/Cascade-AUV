@@ -180,7 +180,7 @@ bool insertDepthImage(const cascade_msgs::msg::ImageWithPose img) {
 void img_subscription_callback(const cascade_msgs::msg::ImageWithPose &img_msg){
     //possibly add a queue for inserting the depth maps?
     insertDepthImage(img_msg);
-    insertArtificialGate(6,0,0,2.5,1);
+    //insertArtificialGate(6,0,0,2.5,1);
 }
 
 int main(int argc, char **argv)

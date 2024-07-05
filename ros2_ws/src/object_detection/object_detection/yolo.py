@@ -7,61 +7,37 @@ import cv2
 import numpy as np
 import torch
 from pathlib import Path
-from utils.common import DetectMultiBackend
-from utils.general import non_max_suppression, scale_boxes
-from utils.torch_utils import select_device
+from ultralytics import YOLO
+
 
 class YoloNode(image_node.ImageNode):
     def __init__(self):
         super().__init__(sub_topic="/sensors/camera/rgb", pub_topic="/labeled_image", name="yolo")
         self.bridge = CvBridge()
+        self.model = YOLO('best.pt')
         
         # Initialize YOLO model
-        weights = 'best.pt'  # Path to your model weights
-        device = select_device('')  # Select device, '' means auto (CPU or CUDA)
-        self.model = DetectMultiBackend(weights, device=device)
-        self.model.warmup(imgsz=(1, 3, 320, 320))  # Adjust the size as per your model
-        self.names = self.model.names
-
+        
     def inference(self, image):
-        # Preprocess the image
-        img = cv2.resize(image, (320, 320))  # Adjust the size as per your model
-        cv2.imshow("raw image",img)
-        cv2.waitKey(1)  # Add a small delay to allow the image to be displayed
-        img = img.transpose((2, 0, 1))  # HWC to CHW
-        img = np.expand_dims(img, axis=0)  # Add batch dimension
-        img = torch.from_numpy(img).to(self.model.device)
-        img = img.float() / 255.0  # Normalize to [0, 1]
+        # Perform inference using the YOLO model
+        results = self.model(image)
 
-        # Run inference
-        pred = self.model(img)
-
-        # Debug prints for prediction
-        self.get_logger().info(f'Prediction shape: {pred.shape}')
-        self.get_logger().info(f'Prediction: {pred[0]}')
-
-        # Apply Non-Maximum Suppression (NMS)
-        pred = non_max_suppression(pred, 0.25, 0.45, classes=None, agnostic=False)
-
-        # Debug prints for NMS
-        print(f'Predictions after NMS: {pred}')
-
-        # Process predictions
+        # Process the results to extract bounding boxes
         boundingBoxes = []
-        for det in pred:  # detections per image
-            if len(det):
-                det[:, :4] = scale_boxes(img.shape[2:], det[:, :4], image.shape).round()
-                for *xyxy, conf, cls in reversed(det):
-                    x1, y1, x2, y2 = xyxy
-                    w, h = x2 - x1, y2 - y1
-                    boundingBoxes.append({
-                        'class_id': int(cls)+1,
-                        'confidence': float(conf),
-                        'x': int(x1),
-                        'y': int(y1),
-                        'w': int(w),
-                        'h': int(h)
-                    })
+        for result in results:
+            for box in result.boxes:
+                # Extract xywh from box correctly
+                xywh = box.xywh[0]
+
+                boundingBox = {
+                'class_id': int(box.cls)+1,  # Class ID
+                'confidence': float(box.conf),  # Confidence score
+                'x': int(xywh[0] - xywh[2] / 2),  # X coordinate
+                'y': int(xywh[1] - xywh[3] / 2),  # Y coordinate
+                'w': int(xywh[2]),  # Width
+                'h': int(xywh[3])  # Height
+                }
+                boundingBoxes.append(boundingBox)
         return boundingBoxes
 
     def subscription_callback(self, msg):

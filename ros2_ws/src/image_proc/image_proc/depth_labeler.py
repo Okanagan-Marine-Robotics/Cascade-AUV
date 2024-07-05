@@ -15,7 +15,7 @@ class DepthLabelerNode(Node):
         queue_size = 20
         acceptable_delay = 0.1  # seconds
         tss = ApproximateTimeSynchronizer(
-            [Subscriber(self, Image, "/clean_depth_map"),
+            [Subscriber(self, Image, "/sensors/camera/depth_map"),
              Subscriber(self, Image, "/labeled_image"),
              Subscriber(self, PoseStamped, "/pose")],
             queue_size,
@@ -30,7 +30,6 @@ class DepthLabelerNode(Node):
         except CvBridgeError as e:
             self.get_logger().error(f"Failed to convert images: {e}")
             return
-
 
         # Assuming label_image has two channels: class and confidence
         class_image = label_image[:, :, 0]

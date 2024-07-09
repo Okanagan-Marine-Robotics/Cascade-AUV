@@ -64,7 +64,7 @@ class MotorCortexNode : public rclcpp::Node
             //TODO: make trig dist calcualtion into a function
 
             response->success=false;
-            if(trig_dist<0.2 && abs(yaw_from_pose(currentPoseMsg.pose)-yaw_from_pose(currentGoalPoseMsg.pose))<10) 
+            if(trig_dist<0.2 && abs(yaw_from_pose(currentPoseMsg.pose)-yaw_from_pose(currentGoalPoseMsg.pose))<5) 
                 response->success=true;
             else 
                 response->ongoing=true;

@@ -15,3 +15,7 @@ ros2_ws/launch/KeyFrameTrajectory.txt
 ml_training/
 .log
 .pt
+.png
+.json
+.txt
+*/images

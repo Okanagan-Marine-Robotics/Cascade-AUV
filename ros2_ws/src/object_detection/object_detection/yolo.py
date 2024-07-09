@@ -41,6 +41,7 @@ class YoloNode(image_node.ImageNode):
         return boundingBoxes
 
     def subscription_callback(self, msg):
+        original_stamp=self.get_clock().now().to_msg()
         try:
             # Convert ROS Image message to OpenCV image
             cv_image = self.bridge.imgmsg_to_cv2(msg, desired_encoding='bgr8')
@@ -81,7 +82,7 @@ class YoloNode(image_node.ImageNode):
             return
 
         # Publish the labeled image
-        labeled_msg.header.stamp = self.get_clock().now().to_msg()
+        labeled_msg.header.stamp = original_stamp
         self.publisher_.publish(labeled_msg)
 
 def main(args=None):

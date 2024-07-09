@@ -97,7 +97,10 @@ void decayAllVoxels(){//finish this
                     accessor.setCellOff(coord);
                     return;
                 }
-                accessor.setValue(coord, {data.class_id,data.confidence*0.997});//decay TODO: turn into a parameter
+                if(data.class_id==0)
+                    accessor.setValue(coord, {data.class_id,data.confidence*0.997});//decay TODO: turn into a parameter
+                else
+                    accessor.setValue(coord, {data.class_id,data.confidence*0.9999});//decay TODO: turn into a parameter
             };
             grid.forEachCell(lambda);
         }
@@ -162,10 +165,8 @@ bool insertDepthImage(const cascade_msgs::msg::ImageWithPose img) {
 
                 Bonxai::CoordT coord = grid.posToCoord(x, y, z);
                 if(accessor.value(coord)!=nullptr){//if there is somethign already in the current voxel
-                    if(confidence >= (*accessor.value(coord)).confidence)//only change the class if we are more confident in the new recognition
+                    if(confidence >= (*accessor.value(coord)).confidence && (*accessor.value(coord)).class_id == 0)//only change the class if we are more confident in the new recognition
                         accessor.setValue(coord, {class_id,confidence}); // Set voxel value to class ID
-                    else
-                        accessor.setValue(coord, {(*accessor.value(coord)).class_id,(*accessor.value(coord)).confidence*.9});//if we detect a lower cionfidence or a differnt class, start decaying the confidence value of the current voxel
                 }
                 else
                     accessor.setValue(coord, {class_id,100.0});//if there isnt anything in current voxel, insert the detected class and confidence

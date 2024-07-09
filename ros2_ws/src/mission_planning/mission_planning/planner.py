@@ -91,6 +91,14 @@ class rise(MovementBehaviour):
         msg.data0 = Vector3(x=0.0, y=0.0, z=0.5)  # Rise by 1 meter
         msg.data1 = Vector3(x=0.0, y=0.0, z=0.0)  # No rotation
 
+class surface(MovementBehaviour):
+    def __init__(self, name):
+        super(rise, self).__init__(name, MovementCommand.MOVE_RELATIVE)
+    
+    def set_command_data(self, msg):
+        msg.data0 = Vector3(x=0.0, y=0.0, z=5)  # Rise by 1 meter
+        msg.data1 = Vector3(x=0.0, y=0.0, z=0.0)  # No rotation
+
 
 class fall(MovementBehaviour):
     def __init__(self, name):
@@ -102,20 +110,22 @@ class fall(MovementBehaviour):
 
 
 class turncw(MovementBehaviour):
-    def __init__(self, name):
+    def __init__(self, name, value):
         super(turncw, self).__init__(name, MovementCommand.MOVE_RELATIVE)
+        self.value = value
     
     def set_command_data(self, msg):
         msg.data0 = Vector3(x=0.0, y=0.0, z=0.0)  # No linear movement
-        msg.data1 = Vector3(x=0.0, y=0.0, z=-30.0)  # Turn 30 degrees clockwise
+        msg.data1 = Vector3(x=0.0, y=0.0, z=-self.value)  # Turn 30 degrees clockwise
 
 class turnccw(MovementBehaviour):
-    def __init__(self, name):
+    def __init__(self, name, value):
         super(turnccw, self).__init__(name, MovementCommand.MOVE_RELATIVE)
+        self.value = value
     
     def set_command_data(self, msg):
         msg.data0 = Vector3(x=0.0, y=0.0, z=0.0)  # No linear movement
-        msg.data1 = Vector3(x=0.0, y=0.0, z=30.0)  # Turn 30 degrees clockwise
+        msg.data1 = Vector3(x=0.0, y=0.0, z=self.value)  # Turn 30 degrees clockwise
 
 
 class move_to_gate(MovementBehaviour):
@@ -193,21 +203,18 @@ def main(args=None):
     sequence4.add_child(move_tosq4)
     sequence4.add_child(forwardsq4)
     
-    fallsq2 = fall("fallsq2")
-    risesq2 = rise("risesq2")
-    turncwsq2 = turncw("turncwsq2")
-    turnccwsq2 = turnccw("turnccwsq2")
-    turnccwsq2_2 = turnccw("turnccwsq2_2")
-    found_gatesq2 = found_gate("found_gatesq2")
-    
-    sequence2 = Sequence(name = "sequence2", memory = True)
+    # Sequence definition
+    sequence2 = Sequence(name="sequence2", memory=True)
 
-    sequence2.add_child(fallsq2)
-    sequence2.add_child(turncwsq2)
-    sequence2.add_child(turnccwsq2)
-    sequence2.add_child(turnccwsq2_2)
-    sequence2.add_child(risesq2)
-    sequence2.add_child(found_gatesq2)
+    # Adding initial fall node
+
+    # Dynamically adding turn and found_gate checks
+    turn_node = turncw(f"turn45sq2", 45.0)
+    found_gate_node = found_gate(f"found_gatesq2")
+    sequence2.add_child(turn_node)
+    sequence2.add_child(found_gate_node)
+
+    # Adding final rise node
     
     selector2 = Selector(name = "selector2", memory = True)
     selector2.add_child(sequence2)

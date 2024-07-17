@@ -20,7 +20,8 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'dead_reckoning = localization.dead_reckoning_node:main'
+            'dead_reckoning = localization.dead_reckoning_node:main',
+            'odometry_estimator = localization.odometry_estimator_node:main'
         ],
     },
 )

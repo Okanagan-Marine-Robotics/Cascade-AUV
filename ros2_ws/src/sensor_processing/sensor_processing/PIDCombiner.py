@@ -25,15 +25,18 @@ class PIDCombinerNode(Node):
     def synced_callback(self, yaw_msg, pitch_msg, roll_msg, surge_msg, sway_msg, heave_msg):
         motor_msg=MotorThrottle()
         #adding up corresponding pid values for each motor
-        motor_msg.fli= heave_msg.data + roll_msg.data - pitch_msg.data
-        motor_msg.fri= heave_msg.data - roll_msg.data - pitch_msg.data
-        motor_msg.bli= heave_msg.data + roll_msg.data + pitch_msg.data
-        motor_msg.bri= heave_msg.data - roll_msg.data + pitch_msg.data
+        
+        def constrain(value, min_val, max_val):
+            return max(min_val, min(value, max_val))
 
-        motor_msg.flo= surge_msg.data - sway_msg.data - yaw_msg.data
-        motor_msg.fro= surge_msg.data + sway_msg.data + yaw_msg.data
-        motor_msg.blo= -surge_msg.data - sway_msg.data + yaw_msg.data
-        motor_msg.bro= -surge_msg.data + sway_msg.data - yaw_msg.data
+        motor_msg.fli = constrain(heave_msg.data + roll_msg.data - pitch_msg.data, -100.0, 100.0)
+        motor_msg.fri = constrain(heave_msg.data - roll_msg.data - pitch_msg.data, -100.0, 100.0)
+        motor_msg.bli = constrain(heave_msg.data + roll_msg.data + pitch_msg.data, -100.0, 100.0)
+        motor_msg.bri = constrain(heave_msg.data - roll_msg.data + pitch_msg.data, -100.0, 100.0)
+        motor_msg.flo = constrain(surge_msg.data - sway_msg.data - yaw_msg.data, -100.0, 100.0)
+        motor_msg.fro = constrain(surge_msg.data + sway_msg.data + yaw_msg.data, -100.0, 100.0)
+        motor_msg.blo = constrain(-surge_msg.data - sway_msg.data + yaw_msg.data, -100.0, 100.0)
+        motor_msg.bro = constrain(-surge_msg.data + sway_msg.data - yaw_msg.data, -100.0, 100.0)
 
         self.publisher_.publish(motor_msg)
 

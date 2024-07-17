@@ -30,6 +30,10 @@ def generate_launch_description():
         ),
         Node(
             package='localization',
+            executable='odometry_estimator',
+        ),
+        Node(
+            package='localization',
             executable='dead_reckoning',
         ),
         Node(

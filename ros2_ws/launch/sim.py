@@ -8,9 +8,13 @@ def generate_launch_description():
       'config',
       'pid.yaml'
     )
+    ekf_config = os.path.join(
+      'config',
+      'ekf.yaml'
+    )
 
     return LaunchDescription([
-                Node(
+        Node(
             package='object_detection',
             executable='yolo',
             name='yolo_object_detector'
@@ -166,5 +170,19 @@ def generate_launch_description():
             package='hardware_integration',
             executable='serial_output',
         ),
+        Node(
+            package='robot_localization',
+            executable='ekf_node',
+            name='ekf_filter_node',
+            output='screen',
+            parameters=[ekf_config]
+        ),
+        Node(
+            package='tf2_ros',
+            executable='static_transform_publisher',
+            name='static_transform_publisher',
+            arguments=['0.254', '0.0', '0.0', '0.0', '0.0', '0.0', '1.0', 'base_link', 'imu_link'],
+            output='screen'
+        )
         ]
     )

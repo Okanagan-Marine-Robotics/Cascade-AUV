@@ -34,10 +34,10 @@ JsonDocument readSensors(JsonDocument &config)
         sensorData["sensors"]["temperature_lm35"][idString] = temperature;
 
         // log the temperature if needed
-        if (shouldLog())
-        {
-            Log.infoln("Temperature LM35: %f on pin %d", temperature, pin);
-        }
+        // if (shouldLog())
+        // {
+        //     Log.infoln("Temperature LM35: %f on pin %d", temperature, pin);
+        // }
     }
 
     JsonArray killswitchSensors = sensors["kill_switch"];
@@ -47,7 +47,7 @@ JsonDocument readSensors(JsonDocument &config)
     {
         int id = sensor["id"];
         String idString = String(id);
-        sensorData["sensors"]["kill_switch"][idString] = killswitch(sensor["pin"]);
+        sensorData["sensors"]["kill_switch"][idString] = killswitch(sensor["pin"], id, sensor["shouldToggle"], sensor["outputPin"]);
     }
 
     return sensorData;
@@ -96,7 +96,7 @@ void setupSensors(JsonDocument &config)
         int id = sensor["id"];
 
         // setup the sensor
-        pinMode(pin, INPUT);
+        setupKillswitch(pin, id, sensor["shouldToggle"], sensor["outputPin"]);
         Log.infoln("Killswitch sensor %d setup on pin %d", id, pin);
     }
 

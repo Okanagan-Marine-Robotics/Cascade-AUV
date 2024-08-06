@@ -5,8 +5,7 @@
 void control_actuators(JsonDocument &actuators, JsonDocument &config)
 {
     Log.infoln("Controlling actuators");
-    serializeJsonPretty(actuators, Serial);
-    Serial.println();
+    // serializeJsonPretty(actuators, Serial);
     // first get the thrusters object
     JsonArray thrusters = actuators["actuators"]["thrusters"];
     JsonArray thrusters_config = config["actuators"]["thrusters"];
@@ -37,8 +36,6 @@ void control_actuators(JsonDocument &actuators, JsonDocument &config)
         JsonObject thruster = thrusters[i];
         JsonObject thruster_config = thrusters_config[i];
 
-        Log.infoln("Setting thruster %s", thruster["name"]);
-
         int max_pulse = thruster_config["max_pulse"];
         int min_pulse = thruster_config["min_pulse"];
         int dead_zone = thruster_config["dead_zone"];
@@ -48,7 +45,7 @@ void control_actuators(JsonDocument &actuators, JsonDocument &config)
         int id = thruster["id"];
 
         // log info
-        Log.infoln("Thruster %s has speed %d and id %d", thruster["name"], speed, id);
+        Log.infoln("Thruster speed %d and id %d", speed, id);
 
         int mapped_pulse = map(speed, -100, 100, min_pulse, max_pulse);
         // Don't ask me how this works it's completely magic and nobody understands why it works

@@ -6,7 +6,7 @@
 #include "actuators/motors/motor_setup.h"
 #include "comms/data_receiver.h"
 #include <actuators/actuator.h>
-#include <WiFi.h>
+// #include <WiFi.h>
 #include <sensors/sensors.h>
 
 // create global variables for bridge id, software version, and log level
@@ -18,8 +18,9 @@ const char *ssid;
 const char *password;
 
 JsonDocument config;
+JsonDocument sensorData;
 
-WiFiServer server(80);
+// WiFiServer server(80);
 
 void setup()
 {
@@ -89,22 +90,22 @@ void setup()
   Log.noticeln("Found %d actuators in config", actuator_count);
 
   // // set wifi server port
-  int port = config["wifi"]["server"]["port"];
-  Log.noticeln("Server started on port %d", port);
+  // int port = config["wifi"]["server"]["port"];
+  // Log.noticeln("Server started on port %d", port);
 
   // // set wifi server ssid and password
-  ssid = config["wifi"]["ssid"];
-  password = config["wifi"]["password"];
+  // ssid = config["wifi"]["ssid"];
+  // password = config["wifi"]["password"];
 
-  Log.noticeln("SSID: %s", ssid);
-  Log.noticeln("Password: %s", password);
+  // Log.noticeln("SSID: %s", ssid);
+  // Log.noticeln("Password: %s", password);
 
   // create a wifi connection
 
   // WiFi.softAP(ssid, password);
   // delay(2000);
 
-  Log.noticeln("IP Address: %s", WiFi.softAPIP().toString().c_str());
+  // Log.noticeln("IP Address: %s", WiFi.softAPIP().toString().c_str());
 
   // setup the motor
   motor_setup(config);
@@ -142,8 +143,12 @@ void loop()
    *********************************************/
 
   // read the sensors
-  // JsonDocument sensorData = readSensors(config);
-  // serializeJson(sensorData, Serial);
+
+  if (sensorData != readSensors(config))
+  {
+    sensorData = readSensors(config);
+    serializeJson(sensorData, Serial);
+  }
 
   // turn off the led
   digitalWrite(LED_BUILTIN, LOW);

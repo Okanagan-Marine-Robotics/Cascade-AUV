@@ -1,2 +1,2 @@
-void setupKillswitch(int pin);
-bool killswitch(int pin);
+void setupKillswitch(int pin, int id, bool shouldToggle, int outputPin);
+bool killswitch(int pin, int id, bool shouldToggle, int outputPin);

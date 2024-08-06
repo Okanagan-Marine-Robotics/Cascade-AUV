@@ -17,7 +17,7 @@
       {
         "id": 1,
         "name": "Thruster 1",
-        "pin": 12,
+        "pin": 15,
         "min_pulse": 1100,
         "max_pulse": 1900,
         "dead_zone": 25
@@ -25,7 +25,55 @@
       {
         "id": 2,
         "name": "Thruster 2",
-        "pin": 15,
+        "pin": 2,
+        "min_pulse": 1100,
+        "max_pulse": 1900,
+        "dead_zone": 25
+      },
+      {
+        "id": 3,
+        "name": "Thruster 3",
+        "pin": 0,
+        "min_pulse": 1100,
+        "max_pulse": 1900,
+        "dead_zone": 25
+      },
+      {
+        "id": 4,
+        "name": "Thruster 4",
+        "pin": 4,
+        "min_pulse": 1100,
+        "max_pulse": 1900,
+        "dead_zone": 25
+      },
+      {
+        "id": 5,
+        "name": "Thruster 5",
+        "pin": 16,
+        "min_pulse": 1100,
+        "max_pulse": 1900,
+        "dead_zone": 25
+      },
+      {
+        "id": 6,
+        "name": "Thruster 6",
+        "pin": 17,
+        "min_pulse": 1100,
+        "max_pulse": 1900,
+        "dead_zone": 25
+      },
+      {
+        "id": 7,
+        "name": "Thruster 7",
+        "pin": 5,
+        "min_pulse": 1100,
+        "max_pulse": 1900,
+        "dead_zone": 25
+      },
+      {
+        "id": 8,
+        "name": "Thruster 8",
+        "pin": 18,
         "min_pulse": 1100,
         "max_pulse": 1900,
         "dead_zone": 25
@@ -33,18 +81,14 @@
     ]
   },
   "sensors": {
-    "temperature_lm35": [
-      {
-        "id": 1,
-        "name": "Temperature Sensor 1",
-        "pin": 36
-      }
-    ],
+    "temperature_lm35": [],
     "kill_switch": [
       {
-        "id": 1,
+        "id": 0,
         "name": "Kill Switch 1",
-        "pin": 9
+        "pin": 12,
+        "shouldToggle": true,
+        "outPutPin": 13
       }
     ]
   }

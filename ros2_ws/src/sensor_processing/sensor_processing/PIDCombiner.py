@@ -29,14 +29,14 @@ class PIDCombinerNode(Node):
         def constrain(value, min_val, max_val):
             return max(min_val, min(value, max_val))
 
-        motor_msg.fli = constrain(heave_msg.data + roll_msg.data - pitch_msg.data, -100.0, 100.0)
-        motor_msg.fri = constrain(heave_msg.data - roll_msg.data - pitch_msg.data, -100.0, 100.0)
-        motor_msg.bli = constrain(heave_msg.data + roll_msg.data + pitch_msg.data, -100.0, 100.0)
-        motor_msg.bri = constrain(heave_msg.data - roll_msg.data + pitch_msg.data, -100.0, 100.0)
-        motor_msg.flo = constrain(surge_msg.data - sway_msg.data - yaw_msg.data, -100.0, 100.0)
-        motor_msg.fro = constrain(surge_msg.data + sway_msg.data + yaw_msg.data, -100.0, 100.0)
-        motor_msg.blo = constrain(-surge_msg.data - sway_msg.data + yaw_msg.data, -100.0, 100.0)
-        motor_msg.bro = constrain(-surge_msg.data + sway_msg.data - yaw_msg.data, -100.0, 100.0)
+        motor_msg.fli = constrain(-heave_msg.data - roll_msg.data + pitch_msg.data, -45.0, 45.0)
+        motor_msg.fri = constrain(-heave_msg.data + roll_msg.data + pitch_msg.data, -45.0, 45.0)
+        motor_msg.bli = constrain(-heave_msg.data - roll_msg.data - pitch_msg.data, -45.0, 45.0)
+        motor_msg.bri = constrain(-heave_msg.data + roll_msg.data - pitch_msg.data, -45.0, 45.0)
+        motor_msg.flo = constrain(surge_msg.data - sway_msg.data - yaw_msg.data, -35.0, 35.0)
+        motor_msg.fro = constrain(surge_msg.data + sway_msg.data + yaw_msg.data, -35.0, 35.0)
+        motor_msg.blo = constrain(surge_msg.data + sway_msg.data - yaw_msg.data, -35.0, 35.0)
+        motor_msg.bro = constrain(surge_msg.data - sway_msg.data + yaw_msg.data, -35.0, 35.0)
 
         self.publisher_.publish(motor_msg)
 

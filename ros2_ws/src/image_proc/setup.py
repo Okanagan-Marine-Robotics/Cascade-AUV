@@ -23,6 +23,7 @@ setup(
             'depth_map = image_proc.depth_pub:main',
             'background_remover = image_proc.background_remover:main',
             'depth_labeler = image_proc.depth_labeler:main',
+            'data_collector = image_proc.data_collector:main',
         ],
     },
 )

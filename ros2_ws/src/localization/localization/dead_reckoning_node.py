@@ -1,48 +1,57 @@
 import rclpy
 from rclpy.node import Node
+from sensor_msgs.msg import Imu
 from cascade_msgs.msg import SensorReading
-from cascade_msgs.msg import Dvl
 from geometry_msgs.msg import PoseStamped
 from geometry_msgs.msg import Pose
-from geometry_msgs.msg import Quaternion
-from sensor_msgs.msg import Imu
-from geometry_msgs.msg import Vector3Stamped
-from message_filters import ApproximateTimeSynchronizer, Subscriber
-import math
 import tf2_ros
-import numpy as np
+import tf2_geometry_msgs
+from geometry_msgs.msg import QuaternionStamped, Quaternion
+import math
+from rclpy.qos import QoSProfile, HistoryPolicy, ReliabilityPolicy, DurabilityPolicy
 
-
-class DeadReckoningNode(Node):
+class ImuToPoseNode(Node):
     def __init__(self):
-        super().__init__("Dead_Reckoning_Node")
-        self.sim_mode=False
-        self.pose_publisher_ = self.create_publisher(PoseStamped, "/pose", 10)
+        super().__init__('dead_reckoning_node')
+        
+        # Subscriber to the IMU gyro data topic
+
+        qos_profile = QoSProfile(
+            history=HistoryPolicy.KEEP_LAST,
+            depth=10,
+            reliability=ReliabilityPolicy.BEST_EFFORT,
+            durability=DurabilityPolicy.VOLATILE
+        )
+
+        self.subscription = self.create_subscription(
+            Imu,
+            '/camera/camera/gyro/sample',
+            self.imu_callback,
+            qos_profile)
+        
+        # Publisher for the pose message
+        self.pose_publisher = self.create_publisher(Pose, '/imu/pose', 10)
         self.pidPublisherMap={}
         self.pidPublisherMap["yaw"] = self.create_publisher(SensorReading, "/PID/yaw/actual", 10)
         self.pidPublisherMap["pitch"] = self.create_publisher(SensorReading, "/PID/pitch/actual", 10)
         self.pidPublisherMap["roll"] = self.create_publisher(SensorReading, "/PID/roll/actual", 10)
-        self.pidPublisherMap["surge"] = self.create_publisher(SensorReading, "/PID/surge/actual", 10)
-        self.pidPublisherMap["sway"] = self.create_publisher(SensorReading, "/PID/sway/actual", 10)
-        self.pidPublisherMap["heave"] = self.create_publisher(SensorReading, "/PID/heave/actual", 10)
-        self.get_logger().debug('Started Dead_Reckoning_Node')
-        queue_size=20
-        acceptable_delay=0.1 #this is how many seconds of difference we allow between the 2 subscriptions before theyre considered not matching
-        tss = ApproximateTimeSynchronizer(
-            [Subscriber(self, Dvl, "/sensors/dvl"),
-            Subscriber(self, Imu, "/sensors/imu"),
-            Subscriber(self, SensorReading, "/sensors/depth")
-                ],
-            queue_size,
-            acceptable_delay)
-        tss.registerCallback(self.synced_callback)
-        self.sim_pose_subscription = self.create_subscription(
-                Pose,
-                "/model/cascade/pose",
-                self.sim_pose_callback,
-                10)
-        self.previous_pose=PoseStamped()
 
+        # Initialize the orientation
+        self.orientation = [0.0, 0.0, 0.0]  # roll, pitch, yaw
+
+        self.tf_buffer = tf2_ros.Buffer()
+        self.tf_listener = tf2_ros.TransformListener(self.tf_buffer, self)
+        self.last_time = self.get_clock().now()
+
+    def euler_to_quaternion(self, roll, pitch, yaw):
+        """Convert Euler angles to quaternion."""
+        qx = math.sin(roll / 2) * math.cos(pitch / 2) * math.cos(yaw / 2) - math.cos(roll / 2) * math.sin(pitch / 2) * math.sin(yaw / 2)
+        qy = math.cos(roll / 2) * math.sin(pitch / 2) * math.cos(yaw / 2) + math.sin(roll / 2) * math.cos(pitch / 2) * math.sin(yaw / 2)
+        qz = math.cos(roll / 2) * math.cos(pitch / 2) * math.sin(yaw / 2) - math.sin(roll / 2) * math.sin(pitch / 2) * math.cos(yaw / 2)
+        qw = math.cos(roll / 2) * math.cos(pitch / 2) * math.cos(yaw / 2) + math.sin(roll / 2) * math.sin(pitch / 2) * math.sin(yaw / 2)
+ 
+        return Quaternion(x=qx, y=qy, z=qz, w=qw)
+    
     def euler_from_quaternion(self, x, y, z, w):
         """
         Convert a quaternion into euler angles (roll, pitch, yaw)
@@ -63,114 +72,75 @@ class DeadReckoningNode(Node):
         t4 = +1.0 - 2.0 * (y * y + z * z)
         yaw_z = math.atan2(t3, t4)
      
-        return roll_x*(180./math.pi), pitch_y*(180./math.pi), yaw_z*(180./math.pi) 
-    
-    def quaternion_to_rotation_matrix(self, quaternion):
-        x, y, z, w = quaternion
-        return np.array([
-            [1 - 2*(y**2 + z**2), 2*(x*y - z*w), 2*(x*z + y*w)],
-            [2*(x*y + z*w), 1 - 2*(x**2 + z**2), 2*(y*z - x*w)],
-            [2*(x*z - y*w), 2*(y*z + x*w), 1 - 2*(x**2 + y**2)]
-        ])
+        return roll_x*(180./math.pi), pitch_y*(180./math.pi), yaw_z*(180./math.pi)
 
-    def surge_sway_heave_from_pose(self, msg):
-        surge=sway=heave=0
-
-        if self.previous_pose is not None:
-            try:
-                # Calculate pose differences (displacements) between consecutive poses
-                current_time = float(msg.header.stamp.sec) + float(msg.header.stamp.nanosec) * 1e-9
-                previous_time = float(self.previous_pose.header.stamp.sec) + float(self.previous_pose.header.stamp.nanosec) * 1e-9
-
-                # Compute the time difference between the current and previous messages
-                dt = current_time - previous_time
-                dx = msg.pose.position.x - self.previous_pose.pose.position.x
-                dy = msg.pose.position.y - self.previous_pose.pose.position.y
-                dz = msg.pose.position.z - self.previous_pose.pose.position.z
-
-                # Extract orientation (quaternion) from current pose
-                orientation = [
-                    msg.pose.orientation.x,
-                    msg.pose.orientation.y,
-                    msg.pose.orientation.z,
-                    msg.pose.orientation.w
-                ]
-
-            # Convert quaternion to rotation matrix
-                R_world_to_robot = self.quaternion_to_rotation_matrix(orientation)
-
-                # Transform pose differences into robot's local coordinate frame
-                displacement_world_frame = np.array([dx, dy, dz])
-                displacement_robot_frame = np.dot(R_world_to_robot.T, displacement_world_frame)
-
-            # Extract surge, sway, and heave components in robot's frame of reference
-                surge = displacement_robot_frame[0]/dt
-                sway = displacement_robot_frame[1]/dt
-                heave = displacement_robot_frame[2]/dt
-
-            except Exception as e:
-                pass
-
-        # Update previous pose for next iteration
-        self.previous_pose = msg
-        #return [0.0,0.0,0.0]
-        return [surge,sway,heave]
-
-    def sim_pose_callback(self, pose_msg):
-        self.sim_mode=True
-        result=PoseStamped()
-        result.pose=pose_msg
-        q=pose_msg.orientation
-        result.header.stamp=self.get_clock().now().to_msg()
-
-        eulers=self.euler_from_quaternion(q.x,q.y,q.z,q.w)
-        ssh=self.surge_sway_heave_from_pose(result)
-
-        msg=SensorReading()
-        msg.header.stamp=self.get_clock().now().to_msg()
-
-        msg.data=eulers[2]
-        self.pidPublisherMap["yaw"].publish(msg)
-
-        msg.data=eulers[1]
-        self.pidPublisherMap["pitch"].publish(msg)
-
-        msg.data=eulers[0]
-        self.pidPublisherMap["roll"].publish(msg)
-
-        msg.data=ssh[0]
-        self.pidPublisherMap["surge"].publish(msg)
-
-        msg.data=ssh[1]
-        self.pidPublisherMap["sway"].publish(msg)
+    def imu_callback(self, msg):
+        # Update orientation based on angular velocity
         
-        msg.data=ssh[2]
-        self.pidPublisherMap["heave"].publish(msg)
-
-        self.pose_publisher_.publish(result)
-
-    def synced_callback(self, dvl, imu, depth):
-        result=PoseStamped()
+        delta_t = 0.01  # time between IMU updates (100 Hz for example)
+        
+        roll_msg=SensorReading()
+        pitch_msg=SensorReading()
+        yaw_msg=SensorReading()
         nullMsg=SensorReading()
-        #add dead reckoning algorithm
-        #also publish 6DOF data
-        result.header.stamp=self.get_clock().now().to_msg()
-        nullMsg.header.stamp=self.get_clock().now().to_msg()
+
+        _time=self.get_clock().now().to_msg()
+        roll_msg.header.stamp=_time
+        pitch_msg.header.stamp=_time
+        yaw_msg.header.stamp=_time
+        '''
+        self.orientation[0] += msg.angular_velocity.x * delta_t  # roll
+        self.orientation[1] += msg.angular_velocity.y * delta_t  # pitch
+        self.orientation[2] += msg.angular_velocity.z * delta_t  # yaw
+
+        quaternion_imu = self.euler_to_quaternion(self.orientation[1],
+                                                    self.orientation[0], 
+                                                    self.orientation[2])
+ 
+        # Create a QuaternionStamped message
+        orientation_imu = QuaternionStamped()
+        orientation_imu.header.frame_id = 'imu_link'
+        orientation_imu.quaternion = quaternion_imu
+
+        pose_in = PoseStamped()
+        pose_in.header.frame_id = "imu_link";
+        pose_in.header.stamp = _time;
+        pose_in.pose.position.x = 0.0;         
+        pose_in.pose.position.y = 0.0;
+        pose_in.pose.position.z = 0.0;
+        pose_in.pose.orientation = orientation_imu.quaternion;         
         
-        if(self.sim_mode==False):
-            self.pidPublisherMap["yaw"].publish(nullMsg);
-            self.pidPublisherMap["pitch"].publish(nullMsg);
-            self.pidPublisherMap["roll"].publish(nullMsg);
-            self.pidPublisherMap["surge"].publish(nullMsg);
-            self.pidPublisherMap["sway"].publish(nullMsg);
-            self.pidPublisherMap["heave"].publish(nullMsg);
-            self.pose_publisher_.publish(result)
+        roll=pitch=yaw=0
+
+        try:
+            orientation_base = self.tf_buffer.transform(pose_in, 'base_link').pose.orientation
+
+            # Log or use the transformed orientation as needed
+            roll,pitch,yaw = self.euler_from_quaternion(orientation_base.x, orientation_base.y,orientation_base.z,orientation_base.w)
+
+        except tf2_ros.LookupException as e:
+            self.get_logger().warn(f"Transform not available: {e}")
+        
+        roll_msg.data=roll
+        pitch_msg.data=-pitch
+        yaw_msg.data=-yaw
+        '''
+        roll_msg.data=msg.angular_velocity.z 
+        pitch_msg.data=-msg.angular_velocity.x
+        yaw_msg.data=-msg.angular_velocity.y
+
+        self.pidPublisherMap["yaw"].publish(roll_msg);
+        self.pidPublisherMap["pitch"].publish(pitch_msg);
+        self.pidPublisherMap["roll"].publish(yaw_msg);
+        
+        #get dvl velocity
 
 def main(args=None):
     rclpy.init(args=args)
-    node = DeadReckoningNode()
+    node = ImuToPoseNode()
     rclpy.spin(node)
     node.destroy_node()
     rclpy.shutdown()
 
-
+if __name__ == '__main__':
+    main()

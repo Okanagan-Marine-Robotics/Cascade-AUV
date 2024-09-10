@@ -20,8 +20,12 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            "serial_output=hardware_integration.serial_output:main",
-            "gui=hardware_integration.gui_tester:main"
+            "serial_output=hardware_integration.serial_output_basic:main",
+            "gui=hardware_integration.gui_tester:main",
+            "cli=hardware_integration.cli:main",
+            "pid_cli=hardware_integration.cli_pid:main",
+            "qual=hardware_integration.qualification:main",
+            "dvl_driver=hardware_integration.dvl_input:main",
         ],
     },
 )

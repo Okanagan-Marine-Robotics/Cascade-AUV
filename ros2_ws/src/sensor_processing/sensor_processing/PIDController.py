@@ -71,7 +71,7 @@ class PIDNode(Node):
                 if(P+self.I+D<0):
                     msg.data*=-1
             else:
-                msg.data=P+self.I+D
+                msg.data=P+self.I+D + self.bias
         else:
             msg.data=0.0
 

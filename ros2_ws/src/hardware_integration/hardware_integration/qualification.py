@@ -115,15 +115,14 @@ class MotorController(Node):
 
     def qualify(self):
         self.execute_command({"Stop":0.0}, 5)
-        self.execute_command({"Move Down":0.3}, 5)
-        self.execute_command({"Move Forward": 0.5}, 12)
+        self.execute_command({"Move Down":0.3}, 2.5)
+        self.execute_command({"Move Forward": 0.5}, 5)
         self.execute_command({"Roll": 90.0}, 2.5)
         self.execute_command({"Stop":0.0}, 3)
         self.execute_command({"Roll": 90.0}, 2.5)
         self.execute_command({"Stop":0.0}, 3)
         self.execute_command({"Turn": 2.0}, 2)
         self.execute_command({"Move Forward": 0.5}, 12)
-        self.execute_command({"Turn": 0.8,"Move Forward": 1.0}, 35)
         self.execute_command({"Stop":0.0}, 3)
         #do cirlce around buoy
         for i in range(50):

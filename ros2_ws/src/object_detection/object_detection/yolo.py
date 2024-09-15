@@ -13,11 +13,11 @@ from ultralytics import YOLO
 class YoloNode(image_node.ImageNode):
     def __init__(self):
         super().__init__(sub_topic="/sensors/camera/rgb", pub_topic="/labeled_image", name="yolo")
-        self.bridge = CvBridge()
+        #self.bridge = CvBridge()
         #self.model = YOLO('best.pt')
         
         # Initialize YOLO model
-        
+        """
     def inference(self, image):
         # Perform inference using the YOLO model
         #results = self.model(image)
@@ -84,7 +84,7 @@ class YoloNode(image_node.ImageNode):
         # Publish the labeled image
         labeled_msg.header.stamp = original_stamp
         self.publisher_.publish(labeled_msg)
-
+"""
 def main(args=None):
     rclpy.init(args=args)
     yolo_node = YoloNode()

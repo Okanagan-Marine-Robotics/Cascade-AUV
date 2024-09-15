@@ -21,7 +21,7 @@ class MinimalSubscriber(Node):
             Image,
             '/camera/camera/color/image_raw',  # Replace with your image topic
             self.image_callback,
-            10)
+            1)
         
         # Custom sensor (SensorReading) subscription
         self.sensor_subscription = self.create_subscription(
@@ -37,6 +37,7 @@ class MinimalSubscriber(Node):
     def image_callback(self, msg):
         # Convert ROS Image message to OpenCV image
         cv_image = self.bridge.imgmsg_to_cv2(msg, "bgr8")
+        cv_image = cv2.resize(cv_image, (640, 480))
         self.current_frame = cv_image  # Store the latest frame
     
     def sensor_callback(self, msg):

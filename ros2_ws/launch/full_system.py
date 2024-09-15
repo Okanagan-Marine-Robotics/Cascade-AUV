@@ -17,12 +17,18 @@ def generate_launch_description():
         Node(
             package='object_detection',
             executable='yolo',
-            name='yolo_object_detector'
+            name='yolo_object_detector',
+            remappings=[
+                ('/sensors/camera/rgb', '/camera/rgb'),
+            ],
         ),
         
         Node(
             package='image_proc',
             executable='depth_labeler',
+            remappings=[
+                ('/depth_map', '/camera/depth'),
+            ],
         ),
         Node(
             package='mapping',
@@ -54,6 +60,10 @@ def generate_launch_description():
         Node(
             package='realsense2_camera',
             executable='realsense2_camera_node',
+            remappings=[
+                ('/camera/camera/depth/image_rect_raw', '/camera/depth'),
+                ('/camera/camera/color/image_raw', '/camera/rgb'),
+            ],
         ),
         Node(
             package='tf2_ros',

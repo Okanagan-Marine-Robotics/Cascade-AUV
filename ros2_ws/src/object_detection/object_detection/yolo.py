@@ -14,13 +14,13 @@ class YoloNode(image_node.ImageNode):
     def __init__(self):
         super().__init__(sub_topic="/sensors/camera/rgb", pub_topic="/labeled_image", name="yolo")
         self.bridge = CvBridge()
-        self.model = YOLO('best.pt')
+        #self.model = YOLO('best.pt')
         
         # Initialize YOLO model
         
     def inference(self, image):
         # Perform inference using the YOLO model
-        results = self.model(image)
+        #results = self.model(image)
 
         # Process the results to extract bounding boxes
         boundingBoxes = []

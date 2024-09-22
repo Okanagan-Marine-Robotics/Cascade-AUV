@@ -1,4 +1,0 @@
-- [Home](/)
-- [Twist Ros2_to_GZ_SIM v1.0](prototypes/gazeboMovePlugin/README.md)
-- [State Machines: An Overview](prototypes/planner/README.md)
-- [ESP Bridge](esp-bridge/README.md)

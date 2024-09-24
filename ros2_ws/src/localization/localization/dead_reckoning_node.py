@@ -88,9 +88,13 @@ class ImuToPoseNode(Node):
         roll_msg.header.stamp=_time
         pitch_msg.header.stamp=_time
         yaw_msg.header.stamp=_time
-        self.orientation[0] += msg.angular_velocity.x * delta_t  # roll
-        self.orientation[1] += msg.angular_velocity.y * delta_t  # pitch
-        self.orientation[2] += msg.angular_velocity.z * delta_t  # yaw
+
+        if(abs(msg.angular_velocity.x) > 0.005):
+            self.orientation[0] += msg.angular_velocity.x * delta_t  # roll
+        if(abs(msg.angular_velocity.y) > 0.005):
+            self.orientation[1] += msg.angular_velocity.y * delta_t  # pitch
+        if(abs(msg.angular_velocity.z) > 0.005):
+            self.orientation[2] += msg.angular_velocity.z * delta_t  # yaw
 
         quaternion_imu = self.euler_to_quaternion(self.orientation[1],
                                                     self.orientation[0], 

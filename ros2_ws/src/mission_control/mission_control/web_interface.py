@@ -17,22 +17,36 @@ class MinimalSubscriber(Node):
         super().__init__('minimal_subscriber')
         
         # Image subscription
+        '''
         self.image_subscription = self.create_subscription(
             Image,
             '/camera/camera/color/image_raw',  # Replace with your image topic
             self.image_callback,
             1)
-        
+        '''
         # Custom sensor (SensorReading) subscription
         self.sensor_subscription = self.create_subscription(
             SensorReading,
             '/PID/yaw/actual',  # Replace with your custom sensor topic
-            self.sensor_callback,
+            self.yaw_callback,
             10)
+        self.sensor_subscription = self.create_subscription(
+            SensorReading,
+            '/PID/roll/actual',  # Replace with your custom sensor topic
+            self.roll_callback,
+            10)
+        self.sensor_subscription = self.create_subscription(
+            SensorReading,
+            '/PID/pitch/actual',  # Replace with your custom sensor topic
+            self.pitch_callback,
+            10)
+
         
         self.current_frame = None
         self.bridge = CvBridge()
-        self.sensor_data = []  # Store the latest sensor reading
+        self.sensor_data_yaw = []  # Store the latest sensor reading
+        self.sensor_data_pitch = []  # Store the latest sensor reading
+        self.sensor_data_roll = []  # Store the latest sensor reading
 
     def image_callback(self, msg):
         # Convert ROS Image message to OpenCV image
@@ -40,11 +54,21 @@ class MinimalSubscriber(Node):
         cv_image = cv2.resize(cv_image, (640, 480))
         self.current_frame = cv_image  # Store the latest frame
     
-    def sensor_callback(self, msg):
+    def yaw_callback(self, msg):
         # Extract the data from the custom sensor message
-        self.sensor_data.append(msg.data)
-        if(len(self.sensor_data)>2000):
-            self.sensor_data.pop(0)
+        self.sensor_data_yaw.append(msg.data)
+        if(len(self.sensor_data_yaw)>2000):
+            self.sensor_data_yaw.pop(0)
+    def roll_callback(self, msg):
+        # Extract the data from the custom sensor message
+        self.sensor_data_roll.append(msg.data)
+        if(len(self.sensor_data_roll)>2000):
+            self.sensor_data_roll.pop(0)
+    def pitch_callback(self, msg):
+        # Extract the data from the custom sensor message
+        self.sensor_data_pitch.append(msg.data)
+        if(len(self.sensor_data_pitch)>2000):
+            self.sensor_data_pitch.pop(0)
 
 # Initialize ROS 2
 rclpy.init()
@@ -76,7 +100,9 @@ app.layout = html.Div([
     html.Div([
         #html.Img(src="/video_feed", style={"width": "auto%", "height": "40%"}),
         dcc.Graph(id='sensor-graph', animate=False),  # Add plotly graph for SensorReading data
-        dcc.Interval(id='interval-component', interval=50, n_intervals=0)
+        dcc.Graph(id='sensor-graph2', animate=False),  # Add plotly graph for SensorReading data
+        dcc.Graph(id='sensor-graph3', animate=False),  # Add plotly graph for SensorReading data
+        dcc.Interval(id='interval-component', interval=100, n_intervals=0)
     ])
 ])
 
@@ -86,15 +112,13 @@ app.layout = html.Div([
     [Input('interval-component', 'n_intervals')]  # Corrected Input import
 )
 def update_graph(n):
-    sensor_data = subscriber_node.sensor_data
+    sensor_data = subscriber_node.sensor_data_yaw
     fig = go.Figure(
         data=[
             go.Scatter(y=sensor_data, mode='lines', name='Sensor Data')
         ]
     )
-    fig.update_layout(title="Custom Sensor Data",
-            yaxis_title="Sensor Value",
-        xaxis_title="Time",
+    fig.update_layout(title="Yaw Angle",
         yaxis=dict(
             autorange=True,  # Enable auto-scaling on y-axis
             fixedrange=False  # Make sure it's not fixed, allows dynamic scaling
@@ -104,6 +128,51 @@ def update_graph(n):
             fixedrange=False
         ),)
     return fig
+
+@app.callback(
+    Output('sensor-graph2', 'figure'),  # Corrected Output import
+    [Input('interval-component', 'n_intervals')]  # Corrected Input import
+)
+def update_graph2(n):
+    sensor_data = subscriber_node.sensor_data_pitch
+    fig = go.Figure(
+        data=[
+            go.Scatter(y=sensor_data, mode='lines', name='Sensor Data')
+        ]
+    )
+    fig.update_layout(title="Pitch Angle",
+        yaxis=dict(
+            autorange=True,  # Enable auto-scaling on y-axis
+            fixedrange=False  # Make sure it's not fixed, allows dynamic scaling
+        ),
+        xaxis=dict(
+            autorange=True,  # Enable auto-scaling on x-axis if needed
+            fixedrange=False
+        ),)
+    return fig
+
+@app.callback(
+    Output('sensor-graph3', 'figure'),  # Corrected Output import
+    [Input('interval-component', 'n_intervals')]  # Corrected Input import
+)
+def update_graph3(n):
+    sensor_data = subscriber_node.sensor_data_roll
+    fig = go.Figure(
+        data=[
+            go.Scatter(y=sensor_data, mode='lines', name='Sensor Data')
+        ]
+    )
+    fig.update_layout(title="Roll angle",
+        yaxis=dict(
+            autorange=True,  # Enable auto-scaling on y-axis
+            fixedrange=False  # Make sure it's not fixed, allows dynamic scaling
+        ),
+        xaxis=dict(
+            autorange=True,  # Enable auto-scaling on x-axis if needed
+            fixedrange=False
+        ),)
+    return fig
+
 
 # Function to spin ROS 2 in a separate thread
 def run_ros2():

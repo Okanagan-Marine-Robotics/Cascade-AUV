@@ -74,7 +74,7 @@ app = Dash(__name__, server=flask_app)
 app.layout = html.Div([
     html.H1("Cascade Web Interface"),
     html.Div([
-        html.Img(src="/video_feed", style={"width": "auto%", "height": "40%"}),
+        #html.Img(src="/video_feed", style={"width": "auto%", "height": "40%"}),
         dcc.Graph(id='sensor-graph', animate=False),  # Add plotly graph for SensorReading data
         dcc.Interval(id='interval-component', interval=50, n_intervals=0)
     ])

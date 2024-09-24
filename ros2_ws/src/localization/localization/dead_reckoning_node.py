@@ -9,6 +9,7 @@ import tf2_geometry_msgs
 from geometry_msgs.msg import QuaternionStamped, Quaternion
 import math
 from rclpy.qos import QoSProfile, HistoryPolicy, ReliabilityPolicy, DurabilityPolicy
+import time
 
 class ImuToPoseNode(Node):
     def __init__(self):
@@ -39,7 +40,7 @@ class ImuToPoseNode(Node):
 
         self.tf_buffer = tf2_ros.Buffer()
         self.tf_listener = tf2_ros.TransformListener(self.tf_buffer, self)
-        self.last_time = self.get_clock().now()
+        self.last_time = time.perf_counter()
 
     def euler_to_quaternion(self, roll, pitch, yaw):
         """Convert Euler angles to quaternion."""
@@ -75,7 +76,8 @@ class ImuToPoseNode(Node):
     def imu_callback(self, msg):
         # Update orientation based on angular velocity
         
-        delta_t = 0.01  # time between IMU updates (100 Hz for example)
+        delta_t = time.perf_counter() - self.last_time; 
+        self.last_time = time.perf_counter()
         
         roll_msg=SensorReading()
         pitch_msg=SensorReading()
@@ -121,9 +123,14 @@ class ImuToPoseNode(Node):
         roll_msg.data=roll
         pitch_msg.data=-pitch
         yaw_msg.data=-yaw
+
+        '''
+        old apporach using angular velocity PID control instead of angle
+
         roll_msg.data=msg.angular_velocity.z 
         pitch_msg.data=-msg.angular_velocity.x
         yaw_msg.data=-msg.angular_velocity.y
+        '''
 
         self.pidPublisherMap["yaw"].publish(roll_msg);
         self.pidPublisherMap["pitch"].publish(pitch_msg);

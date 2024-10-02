@@ -115,10 +115,10 @@ bool insertDepthImage(const cascade_msgs::msg::ImageWithPose img) {
     cv::Mat depth_img = cv_bridge::toCvCopy(img.image)->image;
     int w = depth_img.cols;
     int h = depth_img.rows;
-    double cx = 160; // TODO: Use parameters for camera projection info
-    double cy = 120; // Current parameters are Gazebo Fortress depth cam defaults
-    double fx_inv = 1.0 / 277;
-    double fy_inv = 1.0 / 277;
+    double cx = 320; // TODO: Use parameters for camera projection info
+    double cy = 240; // 
+    double fx_inv = 1.0 / 389.770416259766;
+    double fy_inv = 1.0 / 389.770416259766;
 
     // Convert current pose to tf2 Transform
     tf2::Transform tf_current_pose;

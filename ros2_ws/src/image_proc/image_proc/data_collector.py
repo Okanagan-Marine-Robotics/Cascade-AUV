@@ -33,12 +33,13 @@ class DataCollectorNode(Node):
 
         depth_frame_colored = cv2.applyColorMap(depth_frame_normalized, cv2.COLORMAP_JET)
 
+        
         if self.video_writer_color is None:
             height, width, _ = color_frame.shape
-            self.video_writer_color = cv2.VideoWriter('color_output.mp4', cv2.VideoWriter_fourcc(*'mp4v'), 14.0, (width, height))
+            self.video_writer_color = cv2.VideoWriter('color_output.mkv', cv2.VideoWriter_fourcc(*'X264'), 14.0, (width, height))
         if self.video_writer_depth is None:
             height, width, _ = depth_frame_colored.shape
-            self.video_writer_depth = cv2.VideoWriter('depth_output.mp4', cv2.VideoWriter_fourcc(*'mp4v'), 14.0, (width, height))
+            self.video_writer_depth = cv2.VideoWriter('depth_output.mkv', cv2.VideoWriter_fourcc(*'X264'), 14.0, (width, height))
 
         # Write the combined frame to the video file
         self.video_writer_color.write(color_frame)

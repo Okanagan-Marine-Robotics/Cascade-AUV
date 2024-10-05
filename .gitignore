@@ -19,3 +19,5 @@ ml_training/
 .json
 .txt
 */images
+.bx
+.pyc

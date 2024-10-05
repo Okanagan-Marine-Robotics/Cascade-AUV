@@ -9,6 +9,7 @@ import tf2_geometry_msgs
 from geometry_msgs.msg import QuaternionStamped, Quaternion
 import math
 from rclpy.qos import QoSProfile, HistoryPolicy, ReliabilityPolicy, DurabilityPolicy
+import time
 
 class ImuToPoseNode(Node):
     def __init__(self):
@@ -29,8 +30,6 @@ class ImuToPoseNode(Node):
             self.imu_callback,
             qos_profile)
         
-        # Publisher for the pose message
-        self.pose_publisher = self.create_publisher(Pose, '/imu/pose', 10)
         self.pidPublisherMap={}
         self.pidPublisherMap["yaw"] = self.create_publisher(SensorReading, "/PID/yaw/actual", 10)
         self.pidPublisherMap["pitch"] = self.create_publisher(SensorReading, "/PID/pitch/actual", 10)
@@ -41,7 +40,7 @@ class ImuToPoseNode(Node):
 
         self.tf_buffer = tf2_ros.Buffer()
         self.tf_listener = tf2_ros.TransformListener(self.tf_buffer, self)
-        self.last_time = self.get_clock().now()
+        self.last_time = time.perf_counter()
 
     def euler_to_quaternion(self, roll, pitch, yaw):
         """Convert Euler angles to quaternion."""
@@ -77,7 +76,8 @@ class ImuToPoseNode(Node):
     def imu_callback(self, msg):
         # Update orientation based on angular velocity
         
-        delta_t = 0.01  # time between IMU updates (100 Hz for example)
+        delta_t = time.perf_counter() - self.last_time; 
+        self.last_time = time.perf_counter()
         
         roll_msg=SensorReading()
         pitch_msg=SensorReading()
@@ -88,10 +88,13 @@ class ImuToPoseNode(Node):
         roll_msg.header.stamp=_time
         pitch_msg.header.stamp=_time
         yaw_msg.header.stamp=_time
-        '''
-        self.orientation[0] += msg.angular_velocity.x * delta_t  # roll
-        self.orientation[1] += msg.angular_velocity.y * delta_t  # pitch
-        self.orientation[2] += msg.angular_velocity.z * delta_t  # yaw
+
+        if(abs(msg.angular_velocity.x) > 0.01): #TODO: make this a parameter
+            self.orientation[0] += msg.angular_velocity.x * delta_t  # roll
+        if(abs(msg.angular_velocity.y) > 0.01):
+            self.orientation[1] += msg.angular_velocity.y * delta_t  # pitch
+        if(abs(msg.angular_velocity.z) > 0.01):
+            self.orientation[2] += msg.angular_velocity.z * delta_t  # yaw
 
         quaternion_imu = self.euler_to_quaternion(self.orientation[1],
                                                     self.orientation[0], 
@@ -124,10 +127,14 @@ class ImuToPoseNode(Node):
         roll_msg.data=roll
         pitch_msg.data=-pitch
         yaw_msg.data=-yaw
+
         '''
+        old apporach using angular velocity PID control instead of angle
+
         roll_msg.data=msg.angular_velocity.z 
         pitch_msg.data=-msg.angular_velocity.x
         yaw_msg.data=-msg.angular_velocity.y
+        '''
 
         self.pidPublisherMap["yaw"].publish(roll_msg);
         self.pidPublisherMap["pitch"].publish(pitch_msg);

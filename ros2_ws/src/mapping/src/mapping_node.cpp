@@ -27,7 +27,7 @@ std::shared_ptr<rclcpp::Node> node;
 rclcpp::Publisher<cascade_msgs::msg::VoxelGrid>::SharedPtr gridPublisher;
 bool inserting=false;
 
-double voxel_resolution = 0.15;
+double voxel_resolution = 0.3;
 Bonxai::VoxelGrid<voxelData> grid( voxel_resolution );
 
 

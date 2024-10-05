@@ -11,7 +11,7 @@
 #include <sstream>
 #include <vector>
 
-float voxel_resolution=0.05;//update this to adapt to the grid
+float voxel_resolution=0.3;//update this to adapt to the grid
 Bonxai::VoxelGrid<voxelData> grid = Bonxai::VoxelGrid<voxelData>(voxel_resolution);
 std::shared_ptr<rclcpp::Node> node;
 
@@ -86,9 +86,12 @@ void hsv_to_rgb(float h, float s, float v, float &r, float &g, float &b) {
 }
 // Function to draw a single voxel
 void drawVoxel(float x, float y, float z, float size, voxelData data) {
-    float r=0,g=0,b=0,a,h,s,v;
-    a=data.confidence/100.0;
-    h=abs(((int)x*10)) % 360;
+    float r=0,g=0,b=0,a=1.0,h,s,v;
+    //a=data.confidence/100.0;
+
+    float dist = sqrt(x*x + y*y + z*z);
+
+    h = (int)dist*10 % 360;
     s=1.0;
     v=1.0;
     hsv_to_rgb(h,s,v,r,g,b);

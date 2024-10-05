@@ -40,7 +40,6 @@ def generate_launch_description():
             remappings=[
                 ('/path_grid', '/voxel_grid'),
             ],
-            arguments=['map.bx','--live']
         ),
         ExecuteProcess(cmd=['ros2', 'topic', 'pub', '/pose', 'geometry_msgs/PoseStamped', "{'header': {'stamp': 'now'}}", '-r 15']),
         ]

@@ -22,7 +22,7 @@ using namespace cv_bridge;
 using std::placeholders::_1;
 using std::placeholders::_2;
 
-const float MAX_DIST=15;
+const float MAX_DIST=100;
 std::shared_ptr<rclcpp::Node> node;
 rclcpp::Publisher<cascade_msgs::msg::VoxelGrid>::SharedPtr gridPublisher;
 bool inserting=false;
@@ -32,7 +32,7 @@ Bonxai::VoxelGrid<voxelData> grid( voxel_resolution );
 
 
 float depth_to_meters(float d){
-    return d;
+    return d/100;
 }
 
 void find_object_callback(const std::shared_ptr<cascade_msgs::srv::FindObject::Request> request,
@@ -98,9 +98,9 @@ void decayAllVoxels(){//finish this
                     return;
                 }
                 if(data.class_id==0)
-                    accessor.setValue(coord, {data.class_id,data.confidence*0.997});//decay TODO: turn into a parameter
+                    accessor.setValue(coord, {data.class_id,data.confidence*0.6});//decay TODO: turn into a parameter, maybe make it a formula based on time
                 else
-                    accessor.setValue(coord, {data.class_id,data.confidence*0.9999});//decay TODO: turn into a parameter
+                    accessor.setValue(coord, {data.class_id,data.confidence*0.6});//decay TODO: turn into a parameter
             };
             grid.forEachCell(lambda);
         }
@@ -140,6 +140,7 @@ bool insertDepthImage(const cascade_msgs::msg::ImageWithPose img) {
 
     // Robot's rotation matrix
     tf2::Matrix3x3 tf_R(tf_current_pose.getRotation());
+
     for (int u = 0; u < w; ++u) {
         for (int v = 0; v < h; ++v) {
             float depth = depth_img.at<cv::Vec3f>(v, u)[0]; // Extract depth from the first channel
@@ -148,6 +149,8 @@ bool insertDepthImage(const cascade_msgs::msg::ImageWithPose img) {
             //if(class_id==0)continue;
 
             float x = depth_to_meters(depth);
+            //RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "created mapping_server node! Value: %.2f", x);
+
             if (x > 0 && x < MAX_DIST) {  
                 float y = -x * ((u - cx) * fx_inv); // Calculate real world projection of each pixel
                 float z = x * ((v - cy) * fy_inv); // z is vertical, y is horizontal

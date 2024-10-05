@@ -42,6 +42,6 @@ def generate_launch_description():
             ],
             arguments=['map.bx','--live']
         ),
-        ExecuteProcess(cmd=['ros2', 'topic', 'pub', '/pose', 'geometry_msgs/PoseStamped', "data: {'header': {'stamp': 'now'}}"]),
+        ExecuteProcess(cmd=['ros2', 'topic', 'pub', '/pose', 'geometry_msgs/PoseStamped', "{'header': {'stamp': 'now'}}", '-r 15']),
         ]
     )

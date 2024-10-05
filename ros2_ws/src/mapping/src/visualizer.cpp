@@ -60,10 +60,39 @@ if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
     cameraPositionY -= cameraSpeed;
     }
 
+
+void hsv_to_rgb(float h, float s, float v, float &r, float &g, float &b) {
+    float c = v * s;
+    float x = c * (1 - std::fabs(fmod(h / 60.0, 2) - 1));
+    float m = v - c;
+
+    if (h >= 0 && h < 60) {
+        r = c, g = x, b = 0;
+    } else if (h >= 60 && h < 120) {
+        r = x, g = c, b = 0;
+    } else if (h >= 120 && h < 180) {
+        r = 0, g = c, b = x;
+    } else if (h >= 180 && h < 240) {
+        r = 0, g = x, b = c;
+    } else if (h >= 240 && h < 300) {
+        r = x, g = 0, b = c;
+    } else {
+        r = c, g = 0, b = x;
+    }
+
+    r += m;
+    g += m;
+    b += m;
+}
 // Function to draw a single voxel
 void drawVoxel(float x, float y, float z, float size, voxelData data) {
-    float r=0,g=0,b=0,a;
+    float r=0,g=0,b=0,a,h,s,v;
     a=data.confidence/100.0;
+    h=abs(((int)x*10)) % 360;
+    s=1.0;
+    v=1.0;
+    hsv_to_rgb(h,s,v,r,g,b);
+    /*
     switch(data.class_id){//change class to be integer instead of float
         case cascade_msgs::msg::Classes::OBSTACLE:
             r=0.0;
@@ -96,6 +125,8 @@ void drawVoxel(float x, float y, float z, float size, voxelData data) {
             return;//if the class is anything we dont recognize for some reason, dont display it
             break;
     }
+    */
+
     glColor4f(r, g, b,a);
     glBegin(GL_QUADS);
     // Front face
@@ -374,7 +405,7 @@ int main(int argc, char* argv[]) {
 
         // Set up the view matrix
         setupCamera();
-        setupProjection(800,600);
+        setupProjection(1000,1000);
         if(!file){
             if(frameSinceLastUpdate>10 || frameSinceLastUpdate<0){
                 rclcpp::spin_some(node);

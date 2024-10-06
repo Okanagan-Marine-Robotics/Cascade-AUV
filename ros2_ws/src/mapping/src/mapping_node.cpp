@@ -98,9 +98,9 @@ void decayAllVoxels(){//finish this
                     return;
                 }
                 if(data.class_id==0)
-                    accessor.setValue(coord, {data.class_id,data.confidence*0.6});//decay TODO: turn into a parameter, maybe make it a formula based on time
+                    accessor.setValue(coord, {data.class_id,data.confidence*0.97});//decay TODO: turn into a parameter, maybe make it a formula based on time
                 else
-                    accessor.setValue(coord, {data.class_id,data.confidence*0.6});//decay TODO: turn into a parameter
+                    accessor.setValue(coord, {data.class_id,data.confidence*0.97});//decay TODO: turn into a parameter
             };
             grid.forEachCell(lambda);
         }

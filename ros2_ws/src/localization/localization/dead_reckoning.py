@@ -78,17 +78,16 @@ class DeadReckoningNode(Node):
         vel_body_stamped = geometry_msgs.msg.Vector3Stamped()
         vel_body_stamped.vector = vel_body
         vel_body_stamped.header.frame_id = 'base_link'
-        vel_body_stamped.header.stamp = pose_msg.header.stamp
+        vel_body_stamped.header.stamp.sec = 0 
+        vel_body_stamped.header.stamp.nanosec = 0 
 
         # Transform velocity into the world frame
         try:
             # Transform the velocity to the world frame
             vel_world = self.tf_buffer.transform(vel_body_stamped, 'world', timeout=rclpy.duration.Duration(seconds=0.05))
-            vel_world = vel_world_stamped.vector
-            self.current_x += vel_world.x * delta_t
-            self.current_y += vel_world.y * delta_t
-            self.current_z += vel_world.z * delta_t
-            self.get_logger().info(f'Transformed velocity: {transformed_vel.vector}')
+            self.current_x += vel_world.vector.x * delta_t
+            self.current_y += vel_world.vector.y * delta_t
+            self.current_z += vel_world.vector.z * delta_t
         except Exception as ex:
             self.get_logger().warn(f'Failed to transform velocity: {str(ex)}')
 

@@ -27,12 +27,12 @@ std::shared_ptr<rclcpp::Node> node;
 rclcpp::Publisher<cascade_msgs::msg::VoxelGrid>::SharedPtr gridPublisher;
 bool inserting=false;
 
-double voxel_resolution = 0.3;
+double voxel_resolution = 0.1;
 Bonxai::VoxelGrid<voxelData> grid( voxel_resolution );
 
 
 float depth_to_meters(float d){
-    return d/100;
+    return d*0.001;
 }
 
 void find_object_callback(const std::shared_ptr<cascade_msgs::srv::FindObject::Request> request,

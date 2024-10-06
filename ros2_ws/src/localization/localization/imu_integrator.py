@@ -11,9 +11,9 @@ import math
 from rclpy.qos import QoSProfile, HistoryPolicy, ReliabilityPolicy, DurabilityPolicy
 import time
 
-class ImuToPoseNode(Node):
+class ImuIntegratorNode(Node):
     def __init__(self):
-        super().__init__('dead_reckoning_node')
+        super().__init__('imu_integrator_node')
         
         # Subscriber to the IMU gyro data topic
 
@@ -124,9 +124,9 @@ class ImuToPoseNode(Node):
         except tf2_ros.LookupException as e:
             self.get_logger().warn(f"Transform not available: {e}")
         
-        roll_msg.data=roll
+        roll_msg.data=-roll
         pitch_msg.data=-pitch
-        yaw_msg.data=-yaw
+        yaw_msg.data=yaw
 
         '''
         old apporach using angular velocity PID control instead of angle
@@ -144,7 +144,7 @@ class ImuToPoseNode(Node):
 
 def main(args=None):
     rclpy.init(args=args)
-    node = ImuToPoseNode()
+    node = ImuIntegratorNode()
     rclpy.spin(node)
     node.destroy_node()
     rclpy.shutdown()

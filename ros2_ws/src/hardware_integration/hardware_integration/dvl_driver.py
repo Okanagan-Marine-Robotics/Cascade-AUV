@@ -6,7 +6,7 @@ from cascade_msgs.msg import SensorReading
 
 class DvlDriverNode(Node):
     def __init__(self):
-        super().__init__('dead_reckoning_node')
+        super().__init__('dvl_driver')
         self.pidPublisherMap={}
 
         self.pidPublisherMap["surge"] = self.create_publisher(SensorReading, "/PID/surge/actual", 10)

@@ -25,7 +25,8 @@ setup(
             "cli=hardware_integration.cli:main",
             "pid_cli=hardware_integration.cli_pid:main",
             "qual=hardware_integration.qualification:main",
-            "dvl_driver=hardware_integration.dvl_input:main",
+            "dvl_driver=hardware_integration.dvl_driver:main",
+            "dvl_dummy_driver=hardware_integration.dvl_dummy:main",
         ],
     },
 )

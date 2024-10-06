@@ -23,8 +23,27 @@ def generate_launch_description():
             ],
         ),
         Node(
+            package='tf2_ros',
+            executable='static_transform_publisher',
+            name='static_transform_publisher',
+            arguments=['0.0', '0.0', '0.0', '0.0', '0.0', '0.0', '1.0', 'base_link', 'imu_link'],
+            output='screen'
+        ),
+        Node(
             package='mapping',
             executable='mapping_node',
+        ), 
+        Node(
+            package='hardware_integration',
+            executable='dvl_dummy_driver',
+        ),
+        Node(
+            package='localization',
+            executable='imu_integrator',
+        ),
+        Node(
+            package='localization',
+            executable='dead_reckoning',
         ),
         Node(
             package='realsense2_camera',
@@ -41,6 +60,5 @@ def generate_launch_description():
                 ('/path_grid', '/voxel_grid'),
             ],
         ),
-        ExecuteProcess(cmd=['ros2', 'topic', 'pub', '/pose', 'geometry_msgs/PoseStamped', "{'header': {'stamp': 'now'}}", '-r 15']),
         ]
     )

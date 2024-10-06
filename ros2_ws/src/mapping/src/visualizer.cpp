@@ -11,8 +11,8 @@
 #include <sstream>
 #include <vector>
 
-float voxel_resolution=0.3;//update this to adapt to the grid
-Bonxai::VoxelGrid<voxelData> grid = Bonxai::VoxelGrid<voxelData>(voxel_resolution);
+float voxel_resolution=0;//update this to adapt to the grid
+Bonxai::VoxelGrid<voxelData> grid = Bonxai::VoxelGrid<voxelData>(0);
 std::shared_ptr<rclcpp::Node> node;
 
 // Camera variables
@@ -91,7 +91,7 @@ void drawVoxel(float x, float y, float z, float size, voxelData data) {
 
     float dist = sqrt(x*x + y*y + z*z);
 
-    h = (int)dist*10 % 360;
+    h = (int)(dist*30) % 360;
     s=1.0;
     v=1.0;
     hsv_to_rgb(h,s,v,r,g,b);

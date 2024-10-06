@@ -27,12 +27,12 @@ std::shared_ptr<rclcpp::Node> node;
 rclcpp::Publisher<cascade_msgs::msg::VoxelGrid>::SharedPtr gridPublisher;
 bool inserting=false;
 
-double voxel_resolution = 0.3;
+double voxel_resolution = 0.1;
 Bonxai::VoxelGrid<voxelData> grid( voxel_resolution );
 
 
 float depth_to_meters(float d){
-    return d/100;
+    return d*0.001;
 }
 
 void find_object_callback(const std::shared_ptr<cascade_msgs::srv::FindObject::Request> request,
@@ -98,9 +98,9 @@ void decayAllVoxels(){//finish this
                     return;
                 }
                 if(data.class_id==0)
-                    accessor.setValue(coord, {data.class_id,data.confidence*0.6});//decay TODO: turn into a parameter, maybe make it a formula based on time
+                    accessor.setValue(coord, {data.class_id,data.confidence*0.99});//decay TODO: turn into a parameter, maybe make it a formula based on time
                 else
-                    accessor.setValue(coord, {data.class_id,data.confidence*0.6});//decay TODO: turn into a parameter
+                    accessor.setValue(coord, {data.class_id,data.confidence*0.99});//decay TODO: turn into a parameter
             };
             grid.forEachCell(lambda);
         }
@@ -212,7 +212,7 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    Bonxai::Serialize(outputFile, grid);
+    //Bonxai::Serialize(outputFile, grid);
     outputFile.close();
     return 0;
 }

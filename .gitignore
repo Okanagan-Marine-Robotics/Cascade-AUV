@@ -21,3 +21,6 @@ ml_training/
 */images
 .bx
 .pyc
+.keras
+/experiments
+/datasets

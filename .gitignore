@@ -23,4 +23,4 @@ ml_training/
 .pyc
 .keras
 /experiments
-/datasets
+datasets/

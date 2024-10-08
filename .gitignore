@@ -20,4 +20,7 @@ ml_training/
 .txt
 */images
 .bx
-.pyc
+*.pyc
+.keras
+/experiments
+datasets/

@@ -18,6 +18,8 @@ class EmptyImageNode(image_node.ImageNode):
         # Set dimensions of the empty image
         height, width = 480, 640
 
+        #test
+
         # Create an empty image (all zeros), with 2 channels (F32C2)
         empty_image = np.zeros((height, width, 2), dtype=np.float32)
         color_frame = self.bridge.imgmsg_to_cv2(msg, 'bgr8')

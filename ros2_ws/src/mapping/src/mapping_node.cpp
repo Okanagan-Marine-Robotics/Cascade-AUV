@@ -22,7 +22,7 @@ std::shared_ptr<rclcpp::Node> node;
 rclcpp::Publisher<cascade_msgs::msg::VoxelGrid>::SharedPtr gridPublisher;
 bool inserting=false;
 
-double voxel_resolution = 0.03;
+double voxel_resolution = 0.015;
 Bonxai::VoxelGrid<voxelData> grid( voxel_resolution );
 
 void find_object_callback(const std::shared_ptr<cascade_msgs::srv::FindObject::Request> request,
@@ -95,6 +95,7 @@ void insertDepthImage(const sensor_msgs::msg::PointCloud2 pc) {
         voxelData out;
         ifile.read(reinterpret_cast<char*>(&out), sizeof(voxelData));
         cloudData.push_back(out);
+
     }
 
     for(voxelData vd : cloudData){

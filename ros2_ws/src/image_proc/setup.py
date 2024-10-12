@@ -22,7 +22,7 @@ setup(
         'console_scripts': [
             'depth_map = image_proc.depth_pub:main',
             'background_remover = image_proc.background_remover:main',
-            'depth_labeler = image_proc.depth_labeler:main',
+            'image_data_merger = image_proc.image_data_merger:main',
             'data_collector = image_proc.data_collector:main',
         ],
     },

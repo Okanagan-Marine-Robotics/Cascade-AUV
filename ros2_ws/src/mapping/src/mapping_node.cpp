@@ -22,7 +22,7 @@ using namespace cv_bridge;
 using std::placeholders::_1;
 using std::placeholders::_2;
 
-const float MAX_DIST=100;
+const float MAX_DIST=6;
 std::shared_ptr<rclcpp::Node> node;
 rclcpp::Publisher<cascade_msgs::msg::VoxelGrid>::SharedPtr gridPublisher;
 bool inserting=false;

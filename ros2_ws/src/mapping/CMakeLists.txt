@@ -18,8 +18,11 @@ find_package(tf2_geometry_msgs REQUIRED)
 find_package(glfw3 REQUIRED)
 find_package(OpenGL REQUIRED)
 
-add_executable(mapping_node
-  src/mapping_node.cpp
+#add_executable(mapping_node
+# src/mapping_node.cpp
+#)#
+add_executable(depth_to_pointcloud
+    src/depth_to_pointcloud.cpp
 )
 add_executable(visualizer 
     src/visualizer.cpp)
@@ -32,8 +35,11 @@ add_executable(costmap_node
 
 target_include_directories(serialization_test PUBLIC include)
 
-ament_target_dependencies(mapping_node rclcpp sensor_msgs geometry_msgs cv_bridge message_filters tf2 tf2_ros image_transport tf2_geometry_msgs OpenCV cascade_msgs)
-target_include_directories(mapping_node PUBLIC include)
+#ament_target_dependencies(mapping_node rclcpp sensor_msgs geometry_msgs cv_bridge message_filters tf2 tf2_ros image_transport tf2_geometry_msgs OpenCV cascade_msgs)
+#target_include_directories(mapping_node PUBLIC include)
+
+ament_target_dependencies(depth_to_pointcloud rclcpp sensor_msgs geometry_msgs cv_bridge message_filters tf2 tf2_ros image_transport tf2_geometry_msgs OpenCV cascade_msgs)
+target_include_directories(depth_to_pointcloud PUBLIC include)
 
 ament_target_dependencies(visualizer rclcpp cascade_msgs glfw3 OpenGL tf2 tf2_geometry_msgs)
 target_link_libraries(visualizer ${OPENGL_LIBRARIES} glfw)
@@ -44,7 +50,8 @@ target_include_directories(costmap_node PUBLIC include)
 
 
 install(TARGETS
-  mapping_node
+depth_to_pointcloud
+#mapping_node
   visualizer
   serialization_test
   costmap_node

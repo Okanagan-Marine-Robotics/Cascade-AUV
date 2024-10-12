@@ -21,8 +21,6 @@ class EmptyImageNode(image_node.ImageNode):
         # Create an empty image (all zeros), with 2 channels (F32C2)
         empty_image = np.zeros((height, width, 2), dtype=np.float32)
         color_frame = self.bridge.imgmsg_to_cv2(msg, 'bgr8')
-        cv2.imshow('D455 RGB Image', color_frame)
-        cv2.waitKey(1)
 
         try:
             # Convert the empty image to ROS Image message

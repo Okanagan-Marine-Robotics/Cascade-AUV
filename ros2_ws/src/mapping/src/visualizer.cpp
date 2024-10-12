@@ -86,15 +86,15 @@ void hsv_to_rgb(float h, float s, float v, float &r, float &g, float &b) {
 }
 // Function to draw a single voxel
 void drawVoxel(float x, float y, float z, float size, voxelData data) {
-    float r=0,g=0,b=0,a=1.0,h,s,v;
+    float r=data.r/255.,g=data.g/255.,b=data.b/255.,a=1.0,h,s,v;
     //a=data.confidence/100.0;
 
     float dist = sqrt(x*x + y*y + z*z);
 
-    h = (int)(dist*30) % 360;
-    s=1.0;
-    v=1.0;
-    hsv_to_rgb(h,s,v,r,g,b);
+    //h = (int)(dist*30) % 360;
+    //s=1.0;
+    //v=1.0;
+    //hsv_to_rgb(h,s,v,r,g,b);
     /*
     switch(data.class_id){//change class to be integer instead of float
         case cascade_msgs::msg::Classes::OBSTACLE:

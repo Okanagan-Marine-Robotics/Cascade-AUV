@@ -27,7 +27,7 @@ class DepthLabelerNode(Node):
     def synced_callback(self, depth_msg, rgb_msg ,label_msg, pose_msg):
         try:
             depth_image = self.bridge.imgmsg_to_cv2(depth_msg, desired_encoding="passthrough")
-            rgb_image = self.bridge.imgmsg_to_cv2(rgb_msg, desired_encoding="passthrough")
+            rgb_image = self.bridge.imgmsg_to_cv2(rgb_msg, desired_encoding="bgr8")
             label_image = self.bridge.imgmsg_to_cv2(label_msg, desired_encoding="passthrough")
         except CvBridgeError as e:
             self.get_logger().error(f"Failed to convert images: {e}")
@@ -51,14 +51,16 @@ class DepthLabelerNode(Node):
         # Convert the combined image back to ROS Image message
         try:
             combined_msg = self.bridge.cv2_to_imgmsg(combined_image, encoding="32FC2")
+            rgb_msg = self.bridge.cv2_to_imgmsg(rgb_image, encoding="bgr8")
+            depth_msg = self.bridge.cv2_to_imgmsg(depth_image, encoding="16UC1")
         except CvBridgeError as e:
             self.get_logger().error(f"Failed to convert combined image: {e}")
             return
 
         msg = ImageWithPose()
-        msg.depth = depth_image
-        msg.rgb = rgb_image
-        msg.label = combined_image
+        msg.depth = depth_msg
+        msg.rgb = rgb_msg
+        msg.label = combined_msg
         msg.pose = pose_msg.pose
         msg.header.stamp = self.get_clock().now().to_msg()
         self.publisher_.publish(msg)

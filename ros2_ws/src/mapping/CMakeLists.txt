@@ -18,9 +18,9 @@ find_package(tf2_geometry_msgs REQUIRED)
 find_package(glfw3 REQUIRED)
 find_package(OpenGL REQUIRED)
 
-#add_executable(mapping_node
-# src/mapping_node.cpp
-#)#
+add_executable(mapping_node
+ src/mapping_node.cpp
+)
 add_executable(depth_to_pointcloud
     src/depth_to_pointcloud.cpp
 )
@@ -35,8 +35,8 @@ add_executable(costmap_node
 
 target_include_directories(serialization_test PUBLIC include)
 
-#ament_target_dependencies(mapping_node rclcpp sensor_msgs geometry_msgs cv_bridge message_filters tf2 tf2_ros image_transport tf2_geometry_msgs OpenCV cascade_msgs)
-#target_include_directories(mapping_node PUBLIC include)
+ament_target_dependencies(mapping_node rclcpp sensor_msgs geometry_msgs cv_bridge message_filters tf2 tf2_ros image_transport tf2_geometry_msgs OpenCV cascade_msgs)
+target_include_directories(mapping_node PUBLIC include)
 
 ament_target_dependencies(depth_to_pointcloud rclcpp sensor_msgs geometry_msgs cv_bridge message_filters tf2 tf2_ros image_transport tf2_geometry_msgs OpenCV cascade_msgs)
 target_include_directories(depth_to_pointcloud PUBLIC include)
@@ -50,12 +50,12 @@ target_include_directories(costmap_node PUBLIC include)
 
 
 install(TARGETS
-depth_to_pointcloud
-#mapping_node
-  visualizer
-  serialization_test
-  costmap_node
-  DESTINATION lib/${PROJECT_NAME})
+    depth_to_pointcloud
+    mapping_node
+    visualizer
+    serialization_test
+    costmap_node
+    DESTINATION lib/${PROJECT_NAME})
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)

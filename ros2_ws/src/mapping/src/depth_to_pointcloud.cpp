@@ -58,8 +58,8 @@ void projectDepthImage(const cascade_msgs::msg::ImageWithPose img) {
     std::ostringstream ofile(std::ios::binary);
     
     int actual_points=0;
-    for (int v = 0; v < h; v+=1) {
-        for (int u = 0; u < w; u+=1) {
+    for (int v = 0; v < h; v+=2) {
+        for (int u = 0; u < w; u+=2) {
             float depth = depth_img.at<unsigned short>(v, u); // Extract depth
             int class_id = static_cast<int>(label_img.at<cv::Vec2f>(v, u)[0]); // Extract class from the first channel
             int confidence = static_cast<int>(label_img.at<cv::Vec2f>(v, u)[1]); // Extract confidence from the second channel

@@ -73,7 +73,7 @@ void decayAllVoxels(){//finish this
         accessor.setCellOff(coord);
         return;
     }
-    accessor.value(coord)->confidence *= 0.6;//decay TODO: turn into a parameter, maybe make it a formula based on time
+    accessor.value(coord)->confidence *= 0.99;//decay TODO: turn into a parameter, maybe make it a formula based on time
     };
     grid.forEachCell(lambda);
 }
@@ -95,7 +95,6 @@ void insertDepthImage(const sensor_msgs::msg::PointCloud2 pc) {
         voxelData out;
         ifile.read(reinterpret_cast<char*>(&out), sizeof(voxelData));
         cloudData.push_back(out);
-
     }
 
     for(voxelData vd : cloudData){

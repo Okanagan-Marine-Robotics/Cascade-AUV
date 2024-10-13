@@ -17,7 +17,7 @@ def generate_launch_description():
         ),
         Node(
             package='image_proc',
-            executable='depth_labeler',
+            executable='image_data_merger',
             remappings=[
                 ('/depth_map', '/camera/depth'),
             ],
@@ -32,7 +32,13 @@ def generate_launch_description():
         Node(
             package='mapping',
             executable='mapping_node',
-        ), 
+            #prefix=['gdbserver localhost:3000']
+
+        ),
+        Node(
+            package='mapping',
+            executable='depth_to_pointcloud',
+        ),
         Node(
             package='hardware_integration',
             executable='dvl_dummy_driver',

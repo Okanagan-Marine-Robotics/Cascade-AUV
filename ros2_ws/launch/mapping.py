@@ -40,18 +40,6 @@ def generate_launch_description():
             executable='depth_to_pointcloud',
         ),
         Node(
-            package='hardware_integration',
-            executable='dvl_dummy_driver',
-        ),
-        Node(
-            package='localization',
-            executable='imu_integrator',
-        ),
-        Node(
-            package='localization',
-            executable='dead_reckoning',
-        ),
-        Node(
             package='realsense2_camera',
             executable='realsense2_camera_node',
             remappings=[
@@ -66,5 +54,21 @@ def generate_launch_description():
                 ('/path_grid', '/voxel_grid'),
             ],
         ),
+        ExecuteProcess(cmd=['ros2', 'topic', 'pub', '/pose', 'geometry_msgs/PoseStamped', "{'header': {'stamp': 'now'}}", '-r 15']),
         ]
     )
+"""
+        Node(
+            package='hardware_integration',
+            executable='dvl_dummy_driver',
+        ),
+        Node(
+            package='localization',
+            executable='imu_integrator',
+        ),
+        Node(
+            package='localization',
+            executable='dead_reckoning',
+        ),
+        """
+

@@ -50,14 +50,14 @@ class DeadReckoningNode : public rclcpp::Node{
         last_time = std::chrono::high_resolution_clock::now();
 		
 		pitch  -= msg.angular_velocity.x * dt;
-		yaw -= msg.angular_velocity.y * dt;
+		yaw    -= msg.angular_velocity.y * dt;
         roll   -= msg.angular_velocity.z * dt;
         //yaw and roll are negative to convert from D455 coordinate plane to standard
 
 		auto roll_msg  = cascade_msgs::msg::SensorReading();
 		auto pitch_msg = cascade_msgs::msg::SensorReading();
 		auto yaw_msg   = cascade_msgs::msg::SensorReading();
-		auto pose_msg   = geometry_msgs::msg::PoseStamped();
+		auto pose_msg  = geometry_msgs::msg::PoseStamped();
 
         roll_msg.data=roll*180.0/3.141592653589793238463;
         yaw_msg.data=yaw*180.0/3.141592653589793238463;
@@ -102,11 +102,10 @@ class DeadReckoningNode : public rclcpp::Node{
     std::shared_ptr<message_filters::Synchronizer<SyncPolicy>> sync_;
 
 	rclcpp::Subscription<sensor_msgs::msg::Imu>::SharedPtr gyro_subscription;
-	rclcpp::Publisher<cascade_msgs::msg::SensorReading>::SharedPtr roll_publisher;
-	rclcpp::Publisher<cascade_msgs::msg::SensorReading>::SharedPtr pitch_publisher;
-	rclcpp::Publisher<cascade_msgs::msg::SensorReading>::SharedPtr yaw_publisher;
+	rclcpp::Publisher<SensorMsg>::SharedPtr roll_publisher, pitch_publisher, yaw_publishers;
 	rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr pose_publisher;
     message_filters::Subscriber<SensorMsg> surge_subscriber, sway_subscriber, heave_subscriber;
+
 };
 
 int main(int argc, char * argv[])

@@ -34,9 +34,13 @@ void projectDepthImage(const cascade_msgs::msg::ImageWithPose img) {
     const double fy_inv = 1.0 / 389.770416259766;
 
     // Convert current pose to tf2 Transform
-    tf2::Transform tf_current_pose;
-    tf2::fromMsg(img.pose, tf_current_pose);
-    tf2::Matrix3x3 tf_R(tf_current_pose.getRotation());//rotational matrix used for transforming point
+    tf2::Quaternion q;
+    tf2::fromMsg(img.pose.orientation, q);//getting quaternion from pose
+    //the following 3 lines are a weird solution to the pointcloud pitch being inverted
+    double roll, pitch, yaw;
+    tf2::Matrix3x3(q).getRPY(roll, pitch, yaw);//getting pitch
+    q.setRPY(roll,-pitch,yaw);//setting quaternion to have inverted pitch
+    tf2::Matrix3x3 tf_R(q);//creating rotational matrix used for transforming point
     
     std::vector<voxelData> pointcloud(h * w);
     std::ostringstream ofile(std::ios::binary);

@@ -26,9 +26,9 @@ class DvlDriverNode(Node):
             sway_msg.header.stamp = _time
             heave_msg.header.stamp = _time
                 
-            surge_msg.data = 0.1
+            surge_msg.data = 0.0
             sway_msg.data=0.0
-            heave_msg.data=0.0
+            heave_msg.data=0.2
 
             self.pidPublisherMap["surge"].publish(surge_msg)
             self.pidPublisherMap["sway"].publish(sway_msg)

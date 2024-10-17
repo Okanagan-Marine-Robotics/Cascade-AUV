@@ -31,8 +31,9 @@ class DeadReckoningNode : public rclcpp::Node{
 		    pitch_publisher = this->create_publisher<cascade_msgs::msg::SensorReading>("PID/pitch/actual", 10);
 	    	yaw_publisher = this->create_publisher<cascade_msgs::msg::SensorReading>("PID/yaw/actual", 10);
 	    	pose_publisher = this->create_publisher<geometry_msgs::msg::PoseStamped>("/pose", 10);
+	    	sway_publisher = this->create_publisher<geometry_msgs::msg::PoseStamped>("/PID/sway/actual", 10);
             surge_subscriber.subscribe(this, "PID/surge/actual");
-            sway_subscriber.subscribe(this, "PID/sway/actual");
+            sway_subscriber.subscribe(this, "PID/sway/raw");
             heave_subscriber.subscribe(this, "PID/heave/actual");
             sync_ = std::make_shared<message_filters::Synchronizer<SyncPolicy>>(SyncPolicy(10), surge_subscriber,sway_subscriber,heave_subscriber);
             sync_->registerCallback(std::bind(&DeadReckoningNode::linear_velocity_callback, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
@@ -45,19 +46,31 @@ class DeadReckoningNode : public rclcpp::Node{
             gotFirstTime=true;
             return;
         }
+
 		std::chrono::duration<double> duration = std::chrono::high_resolution_clock::now() - last_time;
         double dt = duration.count();
         last_time = std::chrono::high_resolution_clock::now();
 		
-		pitch  -= msg.angular_velocity.x * dt;
-		yaw    -= msg.angular_velocity.y * dt;
-        roll   -= msg.angular_velocity.z * dt;
+        double angular_velocity_pitch = -msg.angular_velocity.x;
+        double angular_velocity_yaw  = -msg.angular_velocity.y;
+        double angular_velocity_roll = -msg.angular_velocity.z;
+
+		pitch  += angular_velocity_pitch * dt;
+		yaw    += angular_velocity_yaw * dt;
+        roll   += angular_velocity_roll * dt;
         //yaw and roll are negative to convert from D455 coordinate plane to standard
+        
+        constepxr double radius = 2; // dummy value
+        double k0 = surge;
+        double k1 = sway + (angular_veloctiy_yaw * radius);
+        double k2 = heave;
+
 
 		auto roll_msg  = cascade_msgs::msg::SensorReading();
 		auto pitch_msg = cascade_msgs::msg::SensorReading();
 		auto yaw_msg   = cascade_msgs::msg::SensorReading();
 		auto pose_msg  = geometry_msgs::msg::PoseStamped();
+		auto sway_msg  = geometry_msgs::msg::PoseStamped();
 
         roll_msg.data=roll*180.0/3.141592653589793238463;
         yaw_msg.data=yaw*180.0/3.141592653589793238463;
@@ -66,7 +79,7 @@ class DeadReckoningNode : public rclcpp::Node{
         tf2::Quaternion q;
         q.setRPY(roll, pitch, yaw);//creating quaternion from roll pitch and yaw
         tf2::Matrix3x3 tf_R(q); //rotational matrix created using quaternion
-        tf2::Vector3 rotated_point = tf_R * tf2::Vector3(surge*dt, sway*dt, heave*dt);
+        tf2::Vector3 rotated_point = tf_R * tf2::Vector3(k0*dt, k1*dt, k2*dt);
         x += rotated_point.x();
         y += rotated_point.y();
         z += rotated_point.z();
@@ -86,6 +99,8 @@ class DeadReckoningNode : public rclcpp::Node{
 		roll_publisher  -> publish(roll_msg);
 		yaw_publisher   -> publish(yaw_msg);
         pose_publisher  -> publish(pose_msg);
+
+		sway_publisher -> publish(sway_msg);
 	}
 
 	void linear_velocity_callback(const cascade_msgs::msg::SensorReading::ConstSharedPtr surge_msg, const cascade_msgs::msg::SensorReading::ConstSharedPtr sway_msg, const cascade_msgs::msg::SensorReading::ConstSharedPtr heave_msg) {
@@ -102,7 +117,7 @@ class DeadReckoningNode : public rclcpp::Node{
     std::shared_ptr<message_filters::Synchronizer<SyncPolicy>> sync_;
 
 	rclcpp::Subscription<sensor_msgs::msg::Imu>::SharedPtr gyro_subscription;
-	rclcpp::Publisher<SensorMsg>::SharedPtr roll_publisher, pitch_publisher, yaw_publishers;
+	rclcpp::Publisher<SensorMsg>::SharedPtr roll_publisher, pitch_publisher, yaw_publisher, sway_publisher;
 	rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr pose_publisher;
     message_filters::Subscriber<SensorMsg> surge_subscriber, sway_subscriber, heave_subscriber;
 

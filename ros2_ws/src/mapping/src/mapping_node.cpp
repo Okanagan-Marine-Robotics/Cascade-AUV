@@ -22,7 +22,7 @@ std::shared_ptr<rclcpp::Node> node;
 rclcpp::Publisher<cascade_msgs::msg::VoxelGrid>::SharedPtr gridPublisher;
 bool inserting=false;
 
-double voxel_resolution = 0.015;
+double voxel_resolution = 0.02;
 Bonxai::VoxelGrid<voxelData> grid( voxel_resolution );
 
 void find_object_callback(const std::shared_ptr<cascade_msgs::srv::FindObject::Request> request,

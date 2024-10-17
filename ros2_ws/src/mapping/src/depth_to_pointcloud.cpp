@@ -17,7 +17,7 @@
 using namespace std;
 using namespace cv_bridge;
 
-const float MAX_DIST=6;
+const float MAX_DIST=8;
 std::shared_ptr<rclcpp::Node> node;
 rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr cloudPublisher;
 
@@ -34,32 +34,20 @@ void projectDepthImage(const cascade_msgs::msg::ImageWithPose img) {
     const double fy_inv = 1.0 / 389.770416259766;
 
     // Convert current pose to tf2 Transform
-    tf2::Transform tf_current_pose;
-    tf2::fromMsg(img.pose, tf_current_pose);
-
-    double roll, pitch, yaw;
-    tf2::Matrix3x3(tf_current_pose.getRotation()).getRPY(roll, pitch, yaw);
-
-    // Multiply pitch and roll by -1 to correct
-    pitch *= -1.0;
-    roll *= -1.0;
-
-    // Create a quaternion from the modified Euler angles
     tf2::Quaternion q;
-    q.setRPY(roll, pitch, yaw);
-
-    // Create a new transform with the modified orientation
-    tf_current_pose.setRotation(q);
-
-    // Robot's rotation matrix
-    tf2::Matrix3x3 tf_R(tf_current_pose.getRotation());
+    tf2::fromMsg(img.pose.orientation, q);//getting quaternion from pose
+    //the following 3 lines are a weird solution to the pointcloud pitch being inverted
+    double roll, pitch, yaw;
+    tf2::Matrix3x3(q).getRPY(roll, pitch, yaw);//getting pitch
+    q.setRPY(roll,-pitch,yaw);//setting quaternion to have inverted pitch
+    tf2::Matrix3x3 tf_R(q);//creating rotational matrix used for transforming point
     
     std::vector<voxelData> pointcloud(h * w);
     std::ostringstream ofile(std::ios::binary);
     
     int actual_points=0;
-    for (int v = 0; v < h; v+=2) {
-        for (int u = 0; u < w; u+=2) {
+    for (int v = 0; v < h; v+=1) {
+        for (int u = 0; u < w; u+=1) {
             float depth = depth_img.at<unsigned short>(v, u); // Extract depth
             int class_id = static_cast<int>(label_img.at<cv::Vec2f>(v, u)[0]); // Extract class from the first channel
             int confidence = static_cast<int>(label_img.at<cv::Vec2f>(v, u)[1]); // Extract confidence from the second channel

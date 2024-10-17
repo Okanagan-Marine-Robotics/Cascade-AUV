@@ -15,6 +15,9 @@ find_package(tf2_msgs REQUIRED)
 find_package(tf2_geometry_msgs REQUIRED)
 find_package(cascade_msgs REQUIRED)
 
+add_executable(dead_reckoning
+  src/dead_reckoning.cpp)
+
 add_executable(navigator
   src/navigator.cpp)
 
@@ -25,15 +28,18 @@ add_executable(motor_cortex
   src/motor_cortex.cpp)
 
 ament_target_dependencies(motor_cortex rclcpp std_msgs cascade_msgs tf2 tf2_geometry_msgs)
+ament_target_dependencies(dead_reckoning rclcpp std_msgs cascade_msgs tf2 tf2_geometry_msgs)
 ament_target_dependencies(navigator rclcpp std_msgs sensor_msgs cascade_msgs geometry_msgs tf2_geometry_msgs tf2)
 ament_target_dependencies(motion_planner rclcpp std_msgs sensor_msgs cascade_msgs geometry_msgs tf2_geometry_msgs tf2)
+
 target_include_directories(motion_planner PUBLIC include)
 
 install(TARGETS
-  navigator
-  motion_planner
-  motor_cortex
-  DESTINATION lib/${PROJECT_NAME})
+    dead_reckoning
+    navigator
+    motion_planner
+    motor_cortex
+    DESTINATION lib/${PROJECT_NAME})
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)

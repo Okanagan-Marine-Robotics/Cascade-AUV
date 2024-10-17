@@ -16,6 +16,10 @@ def generate_launch_description():
             executable='detector',
         ),
         Node(
+            package='hardware_integration',
+            executable='dvl_dummy_driver',
+        ),
+        Node(
             package='image_proc',
             executable='image_data_merger',
             remappings=[
@@ -23,33 +27,12 @@ def generate_launch_description():
             ],
         ),
         Node(
-            package='tf2_ros',
-            executable='static_transform_publisher',
-            name='static_transform_publisher',
-            arguments=['0.0', '0.0', '0.0', '0.0', '0.0', '0.0', '1.0', 'base_link', 'imu_link'],
-            output='screen'
-        ),
-        Node(
             package='mapping',
             executable='mapping_node',
-            #prefix=['gdbserver localhost:3000']
-
         ),
         Node(
             package='mapping',
             executable='depth_to_pointcloud',
-        ),
-        Node(
-            package='hardware_integration',
-            executable='dvl_dummy_driver',
-        ),
-        Node(
-            package='localization',
-            executable='imu_integrator',
-        ),
-        Node(
-            package='localization',
-            executable='dead_reckoning',
         ),
         Node(
             package='realsense2_camera',
@@ -66,5 +49,9 @@ def generate_launch_description():
                 ('/path_grid', '/voxel_grid'),
             ],
         ),
-        ]
-    )
+       Node(
+            package='navigation',
+            executable='dead_reckoning',
+        )    
+       ])
+

@@ -2,38 +2,53 @@
 #include "geometry_msgs/msg/pose_stamped.hpp"
 #include "cascade_msgs/msg/sensor_reading.hpp"
 #include "sensor_msgs/msg/imu.hpp"
+#include <chrono>
 
 typedef unsigned int uint32;
 using std::placeholders::_1;
 
 class DeadReckoningNode : public rclcpp::Node{
     public:
-        float x,y,z,roll=0,pitch=0,yaw=0;
-	float last_time;
-	DeadReckoningNode() : Node("dead_reckoning_node") {
-		gyro_subscription = this->create_subscription<sensor_msgs::msg::Imu>("/camera/gyro", 10, std::bind(&DeadReckoningNode::imu_callback, this, _1));
-		roll_publisher = this->create_publisher<cascade_msgs::msg::SensorReading>("/roll", 10);
-		pitch_publisher = this->create_publisher<cascade_msgs::msg::SensorReading>("/pitch", 10);
-		yaw_publisher = this->create_publisher<cascade_msgs::msg::SensorReading>("/yaw", 10);
-	}
+        double x,y,z,roll=0,pitch=0,yaw=0;
+        bool gotFirstTime=false;
+        std::chrono::time_point<std::chrono::high_resolution_clock> last_time;
+	    DeadReckoningNode() : Node("dead_reckoning_node") {
+            rclcpp::QoS qos_profile(10);  // Create QoS profile with history depth 10
+            qos_profile.reliability(rclcpp::ReliabilityPolicy::BestEffort);
+
+		    gyro_subscription = this->create_subscription<sensor_msgs::msg::Imu>("/camera/camera/gyro/sample", qos_profile, std::bind(&DeadReckoningNode::imu_callback, this, _1));
+		    roll_publisher = this->create_publisher<cascade_msgs::msg::SensorReading>("PID/roll/actual", 10);
+		    pitch_publisher = this->create_publisher<cascade_msgs::msg::SensorReading>("PID/pitch/actual", 10);
+	    	yaw_publisher = this->create_publisher<cascade_msgs::msg::SensorReading>("PID/yaw/actual", 10);
+	    }
 
 	private:
 	void imu_callback(const sensor_msgs::msg::Imu &msg) {
-		float total_time = msg.header.stamp.sec + msg.header.stamp.nanosec * (1.0 / 1'000'000'000);
-		float dt = total_time - last_time;
-		last_time = total_time;
-
-		roll  += msg.angular_velocity.x * dt;
-		pitch += msg.angular_velocity.y * dt;
-		yaw   += msg.angular_velocity.z * dt;
+        if(!gotFirstTime){
+            last_time = std::chrono::high_resolution_clock::now();
+            gotFirstTime=true;
+            return;
+        }
+	    //double total_time = msg.header.stamp.sec + msg.header.stamp.nanosec * (1.0 / 1'000'000'000);
+		std::chrono::duration<double> duration = std::chrono::high_resolution_clock::now() - last_time;
+        double dt = duration.count();
+        last_time = std::chrono::high_resolution_clock::now();
+		
+		pitch  += msg.angular_velocity.x * dt;
+		yaw += msg.angular_velocity.y * dt;
+		roll   += msg.angular_velocity.z * dt;
 
 		auto roll_msg  = cascade_msgs::msg::SensorReading();
 		auto pitch_msg = cascade_msgs::msg::SensorReading();
 		auto yaw_msg   = cascade_msgs::msg::SensorReading();
 
-        roll_msg.data=roll;
-        yaw_msg.data=yaw;
-        pitch_msg.data=pitch;
+        roll_msg.data=roll*180.0/3.141592653589793238463;
+        yaw_msg.data=yaw*180.0/3.141592653589793238463;
+        pitch_msg.data=pitch*180.0/3.141592653589793238463;
+
+        roll_msg.header=msg.header;
+        pitch_msg.header=msg.header;
+        yaw_msg.header=msg.header;
 
 		pitch_publisher -> publish(pitch_msg);
 		roll_publisher  -> publish(roll_msg);

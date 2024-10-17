@@ -23,17 +23,8 @@ def generate_launch_description():
             ],
         ),
         Node(
-            package='tf2_ros',
-            executable='static_transform_publisher',
-            name='static_transform_publisher',
-            arguments=['0.0', '0.0', '0.0', '0.0', '0.0', '0.0', '1.0', 'base_link', 'imu_link'],
-            output='screen'
-        ),
-        Node(
             package='mapping',
             executable='mapping_node',
-            #prefix=['gdbserver localhost:3000']
-
         ),
         Node(
             package='mapping',
@@ -54,21 +45,9 @@ def generate_launch_description():
                 ('/path_grid', '/voxel_grid'),
             ],
         ),
-        ExecuteProcess(cmd=['ros2', 'topic', 'pub', '/pose', 'geometry_msgs/PoseStamped', "{'header': {'stamp': 'now'}}", '-r 15']),
-        ]
-    )
-"""
-        Node(
-            package='hardware_integration',
-            executable='dvl_dummy_driver',
-        ),
-        Node(
-            package='localization',
-            executable='imu_integrator',
-        ),
-        Node(
-            package='localization',
+       Node(
+            package='navigation',
             executable='dead_reckoning',
-        ),
-        """
+        )    
+       ])
 

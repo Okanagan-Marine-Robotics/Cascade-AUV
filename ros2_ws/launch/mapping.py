@@ -16,6 +16,10 @@ def generate_launch_description():
             executable='detector',
         ),
         Node(
+            package='hardware_integration',
+            executable='dvl_dummy_driver',
+        ),
+        Node(
             package='image_proc',
             executable='image_data_merger',
             remappings=[

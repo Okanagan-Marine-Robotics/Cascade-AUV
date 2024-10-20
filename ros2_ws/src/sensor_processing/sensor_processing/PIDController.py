@@ -26,7 +26,7 @@ class PIDNode(Node):
         self.lastError=0.0
 
         queue_size=20
-        acceptable_delay=0.1 #this is how many seconds of difference we allow between the 2 subscriptions before theyre considered not matching
+        acceptable_delay=0.05 #this is how many seconds of difference we allow between the 2 subscriptions before theyre considered not matching
         tss = ApproximateTimeSynchronizer(
             [Subscriber(self, SensorReading, "/PID/XXX/target"),
             Subscriber(self, SensorReading, "/PID/XXX/actual"),

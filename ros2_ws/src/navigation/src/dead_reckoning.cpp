@@ -31,7 +31,7 @@ class DeadReckoningNode : public rclcpp::Node{
 		    pitch_publisher = this->create_publisher<cascade_msgs::msg::SensorReading>("PID/pitch/actual", 10);
 	    	yaw_publisher = this->create_publisher<cascade_msgs::msg::SensorReading>("PID/yaw/actual", 10);
 	    	pose_publisher = this->create_publisher<geometry_msgs::msg::PoseStamped>("/pose", 10);
-	    	sway_publisher = this->create_publisher<geometry_msgs::msg::PoseStamped>("/PID/sway/actual", 10);
+	    	sway_publisher = this->create_publisher<cascade_msgs::msg::SensorReading>("/PID/sway/actual", 10);
             surge_subscriber.subscribe(this, "PID/surge/actual");
             sway_subscriber.subscribe(this, "PID/sway/raw");
             heave_subscriber.subscribe(this, "PID/heave/actual");
@@ -51,35 +51,41 @@ class DeadReckoningNode : public rclcpp::Node{
         double dt = duration.count();
         last_time = std::chrono::high_resolution_clock::now();
 		
-        double angular_velocity_pitch = -msg.angular_velocity.x;
-        double angular_velocity_yaw  = -msg.angular_velocity.y;
-        double angular_velocity_roll = -msg.angular_velocity.z;
+        double angular_velocity_pitch = 0;
+        double angular_velocity_yaw  = 0;
+        double angular_velocity_roll = 0;
+
+        if(abs(msg.angular_velocity.x)>0.01)
+            angular_velocity_pitch = -msg.angular_velocity.x;
+        if(abs(msg.angular_velocity.y)>0.01)
+            angular_velocity_yaw  = -msg.angular_velocity.y;
+        if(abs(msg.angular_velocity.z)>0.01)
+            angular_velocity_roll = -msg.angular_velocity.z;
+        
 
 		pitch  += angular_velocity_pitch * dt;
 		yaw    += angular_velocity_yaw * dt;
         roll   += angular_velocity_roll * dt;
         //yaw and roll are negative to convert from D455 coordinate plane to standard
         
-        constepxr double radius = 2; // dummy value
-        double k0 = surge;
-        double k1 = sway + (angular_veloctiy_yaw * radius);
-        double k2 = heave;
-
+        double radius = 0.1; // dummy value
+        double adjusted_sway = sway + (angular_velocity_yaw * radius);
 
 		auto roll_msg  = cascade_msgs::msg::SensorReading();
 		auto pitch_msg = cascade_msgs::msg::SensorReading();
 		auto yaw_msg   = cascade_msgs::msg::SensorReading();
 		auto pose_msg  = geometry_msgs::msg::PoseStamped();
-		auto sway_msg  = geometry_msgs::msg::PoseStamped();
+		auto sway_msg  = cascade_msgs::msg::SensorReading();
 
         roll_msg.data=roll*180.0/3.141592653589793238463;
         yaw_msg.data=yaw*180.0/3.141592653589793238463;
         pitch_msg.data=pitch*180.0/3.141592653589793238463;
+        sway_msg.data=adjusted_sway;
 
         tf2::Quaternion q;
         q.setRPY(roll, pitch, yaw);//creating quaternion from roll pitch and yaw
         tf2::Matrix3x3 tf_R(q); //rotational matrix created using quaternion
-        tf2::Vector3 rotated_point = tf_R * tf2::Vector3(k0*dt, k1*dt, k2*dt);
+        tf2::Vector3 rotated_point = tf_R * tf2::Vector3(surge*dt, adjusted_sway*dt, heave*dt);
         x += rotated_point.x();
         y += rotated_point.y();
         z += rotated_point.z();

@@ -11,7 +11,7 @@ class DvlDriverNode(Node):
         self.pidPublisherMap={}
 
         self.pidPublisherMap["surge"] = self.create_publisher(SensorReading, "/PID/surge/actual", 10)
-        self.pidPublisherMap["sway"] = self.create_publisher(SensorReading, "/PID/sway/actual", 10)
+        self.pidPublisherMap["sway"] = self.create_publisher(SensorReading, "/PID/sway/raw", 10)
         self.pidPublisherMap["heave"] = self.create_publisher(SensorReading, "/PID/heave/actual", 10)
 
     def udp_server(self):
@@ -28,7 +28,7 @@ class DvlDriverNode(Node):
                 
             surge_msg.data = 0.0
             sway_msg.data=0.0
-            heave_msg.data=0.2
+            heave_msg.data=0.0
 
             self.pidPublisherMap["surge"].publish(surge_msg)
             self.pidPublisherMap["sway"].publish(sway_msg)

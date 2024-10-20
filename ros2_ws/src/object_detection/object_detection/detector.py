@@ -1,47 +1,53 @@
-from image_proc import image_node
 import rclpy
+from rclpy.node import Node
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
 import numpy as np
 import cv2
+import os
+import keras
+from keras import layers
+from tensorflow import data as tf_data
+import matplotlib.pyplot as plt
+import tensorflow as tf
+import logging
+from tensorflow.python.client import device_lib
+from keras.models import load_model
+from message_filters import ApproximateTimeSynchronizer, Subscriber
 
-#this is currently dummy code that publishes nothing
-
-class EmptyImageNode(image_node.ImageNode):
-    def __init__(self):
-        super().__init__(sub_topic="camera/rgb", pub_topic="/labeled_image", name="object_detector")
+class ObjectDetectorNode(Node):
+    def __init__(self, node_name, model_file):
+        super().__init__(node_name)
         self.bridge = CvBridge()
+        queue_size = 2
+        acceptable_delay = 0.06  # seconds
+        tss = ApproximateTimeSynchronizer(
+            [Subscriber(self, Image, "/camera/rgb"),
+             Subscriber(self, Image, "/camera/depth"),
+             ],
+            queue_size,
+            acceptable_delay)
+        if(model_file!="model.keras"):
+            self.model = load_model(model_file)
+        self.target_size = (480, 640, 2)  # Example size (you can adjust this to your needs)
+        tss.registerCallback(self.synced_callback)
+        self.publisher_ = self.create_publisher(Image, '/labeled_image', 10)
 
-    def subscription_callback(self, msg):
-        # Instead of processing the received image, we'll create a blank F32C2 image of size 640x480
+    def inference(self,rgb,depth):
+        return np.zeros(self.target_size, dtype=np.float32)
 
-        # Set dimensions of the empty image
-        height, width = 480, 640
+    def synced_callback(self, rgb_msg, depth_msg):
+        color_frame = self.bridge.imgmsg_to_cv2(rgb_msg, 'bgr8')
+        depth_frame = self.bridge.imgmsg_to_cv2(depth_msg, desired_encoding='passthrough')
 
-        # Create an empty image (all zeros), with 2 channels (F32C2)
-        empty_image = np.zeros((height, width, 2), dtype=np.float32)
-        color_frame = self.bridge.imgmsg_to_cv2(msg, 'bgr8')
+        label_image = self.inference(color_frame, depth_frame)#image must be returned in 32FC2 format, [class, confidence]
 
         try:
             # Convert the empty image to ROS Image message
-            empty_msg = self.bridge.cv2_to_imgmsg(empty_image, encoding='32FC2')
+            label_msg = self.bridge.cv2_to_imgmsg(label_image, encoding='32FC2')
         except CvBridgeError as e:
             self.get_logger().error(f"Failed to convert empty image: {e}")
             return
 
-        # Copy the timestamp from the original message
-        empty_msg.header.stamp = msg.header.stamp
-
-        # Publish the empty image
-        self.publisher_.publish(empty_msg)
-
-def main(args=None):
-    rclpy.init(args=args)
-    empty_image_node = EmptyImageNode()
-    rclpy.spin(empty_image_node)
-    empty_image_node.destroy_node()
-    rclpy.shutdown()
-
-if __name__ == '__main__':
-    main()
-
+        label_msg.header.stamp = rgb_msg.header.stamp
+        self.publisher_.publish(label_msg)

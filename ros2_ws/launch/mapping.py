@@ -13,14 +13,14 @@ def generate_launch_description():
     return LaunchDescription([
         Node(
             package='object_detection',
-            executable='detector',
+            executable='example_detector',
         ),
         Node(
             package='hardware_integration',
             executable='dvl_dummy_driver',
         ),
         Node(
-            package='image_proc',
+            package='object_detection',
             executable='image_data_merger',
             remappings=[
                 ('/depth_map', '/camera/depth'),

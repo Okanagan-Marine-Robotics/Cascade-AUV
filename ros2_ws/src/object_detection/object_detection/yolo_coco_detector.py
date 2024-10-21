@@ -5,8 +5,7 @@ import numpy as np
 
 class ExampleDetector(ObjectDetectorNode):
     def __init__(self):
-        super().__init__(node_name="example_detector")
-        #define model here if needed
+        super().__init__(node_name="yolo_detector")
 
     def inference(self,rgb,depth):
         #insert inferencing code here

@@ -16,7 +16,7 @@ from keras.models import load_model
 from message_filters import ApproximateTimeSynchronizer, Subscriber
 
 class ObjectDetectorNode(Node):
-    def __init__(self, node_name, using_keras, model_file="model.keras"):
+    def __init__(self, node_name):
         super().__init__(node_name)
         self.bridge = CvBridge()
         queue_size = 2
@@ -27,8 +27,6 @@ class ObjectDetectorNode(Node):
              ],
             queue_size,
             acceptable_delay)
-        if(using_keras):
-            self.model = load_model(model_file)
         self.target_size = (480, 640, 2)  # Example size (you can adjust this to your needs)
         tss.registerCallback(self.synced_callback)
         self.publisher_ = self.create_publisher(Image, '/labeled_image', 10)
@@ -41,6 +39,7 @@ class ObjectDetectorNode(Node):
         #if the value needs to be normalized, id say convert it to a scale from 0-1.0 where 1.0 is 8 meters away
         #anything above 8 meters away starts to become less accurate
         return np.zeros(self.target_size, dtype=np.float32)
+        #inference method should return a numpy array
 
     def synced_callback(self, rgb_msg, depth_msg):
         color_frame = self.bridge.imgmsg_to_cv2(rgb_msg, 'bgr8')

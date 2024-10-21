@@ -20,7 +20,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'detector = object_detection.detector:main',
+            'example_detector = object_detection.example_detector:main',
             'image_data_merger = object_detection.image_data_merger:main',
             'data_collector = object_detection.data_collector:main',
         ],

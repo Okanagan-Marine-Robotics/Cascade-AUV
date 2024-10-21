@@ -5,10 +5,11 @@ import numpy as np
 
 class ExampleDetector(ObjectDetectorNode):
     def __init__(self):
-        super().__init__(node_name="example_detector", model_file="model.keras")
+        super().__init__(node_name="example_detector", using_keras=False)
 
     def inference(self,rgb,depth):
-        return np.zeros(self.target_size, dtype=np.float32)
+        #insert inferencing code here
+        return np.zeros(self.target_size, dtype=np.float32)#returns nothing
 
 def main(args=None):
     rclpy.init(args=args)

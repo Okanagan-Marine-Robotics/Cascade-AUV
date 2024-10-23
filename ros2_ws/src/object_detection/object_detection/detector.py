@@ -46,7 +46,7 @@ class ObjectDetectorNode(Node):
         depth_frame = self.bridge.imgmsg_to_cv2(depth_msg, desired_encoding='passthrough')
 
         label_image = self.inference(color_frame, depth_frame)#image must be returned in 32FC2 format, [class, confidence]
-
+        
         try:
             # Convert the empty image to ROS Image message
             label_msg = self.bridge.cv2_to_imgmsg(label_image, encoding='32FC2')

@@ -51,9 +51,9 @@ void projectDepthImage(const cascade_msgs::msg::ImageWithPose img) {
             float depth = depth_img.at<unsigned short>(v, u); // Extract depth
             int class_id = static_cast<int>(label_img.at<cv::Vec2f>(v, u)[0]); // Extract class from the first channel
             int confidence = static_cast<int>(label_img.at<cv::Vec2f>(v, u)[1]); // Extract confidence from the second channel
-            unsigned char r = rgb_img.at<cv::Vec3b>(v, u)[2]; 
+            unsigned char r = rgb_img.at<cv::Vec3b>(v, u)[0]; 
             unsigned char g = rgb_img.at<cv::Vec3b>(v, u)[1]; 
-            unsigned char b = rgb_img.at<cv::Vec3b>(v, u)[0]; 
+            unsigned char b = rgb_img.at<cv::Vec3b>(v, u)[2]; 
             float x = depth*0.001;//make this a parameter, although it shouldnt ever change 
 
             if (x > 0.0 && x < MAX_DIST) {  

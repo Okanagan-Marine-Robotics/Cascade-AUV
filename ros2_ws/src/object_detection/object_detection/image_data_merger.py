@@ -12,8 +12,8 @@ class DepthLabelerNode(Node):
     def __init__(self):
         super().__init__("depth_labeler")
         self.bridge = CvBridge()
-        queue_size = 20
-        acceptable_delay = 0.06  # seconds
+        queue_size = 100
+        acceptable_delay = 2.0  # this has to be very high to accomodate how slow the object detection is rn
         tss = ApproximateTimeSynchronizer(
             [Subscriber(self, Image, "/depth_map"),
              Subscriber(self, Image, "/camera/rgb"),

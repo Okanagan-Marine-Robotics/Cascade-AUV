@@ -42,7 +42,7 @@ class ObjectDetectorNode(Node):
         #inference method should return a numpy array
 
     def synced_callback(self, rgb_msg, depth_msg):
-        color_frame = self.bridge.imgmsg_to_cv2(rgb_msg, 'bgr8')
+        color_frame = self.bridge.imgmsg_to_cv2(rgb_msg, 'rgb8')
         depth_frame = self.bridge.imgmsg_to_cv2(depth_msg, desired_encoding='passthrough')
 
         label_image = self.inference(color_frame, depth_frame)#image must be returned in 32FC2 format, [class, confidence]

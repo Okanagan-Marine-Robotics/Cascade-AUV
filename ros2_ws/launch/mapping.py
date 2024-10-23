@@ -12,7 +12,7 @@ def generate_launch_description():
 
     return LaunchDescription([
         Node(
-            package='object_detection',
+            package='object_detection',        
             executable='yolo_coco_detector',
         ),
         Node(

@@ -13,7 +13,7 @@ def generate_launch_description():
     return LaunchDescription([
         Node(
             package='object_detection',
-            executable='example_detector',
+            executable='dummy_detector',
         ),
         Node(
             package='hardware_integration',

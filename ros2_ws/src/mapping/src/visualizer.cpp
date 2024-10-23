@@ -87,9 +87,15 @@ void hsv_to_rgb(float h, float s, float v, float &r, float &g, float &b) {
 // Function to draw a single voxel
 void drawVoxel(float x, float y, float z, float size, voxelData data) {
     float r=data.r/255.,g=data.g/255.,b=data.b/255.,a=1.0,h,s,v;
+    if(data.class_id==1){
+        r=1.0;g=0.0;b=0.0;
+    }
+    if(data.class_id==2){
+        r=0.0;g=1.0;b=0.0;
+    }
     //a=data.confidence/100.0;
 
-    float dist = sqrt(x*x + y*y + z*z);
+    //float dist = sqrt(x*x + y*y + z*z);
 
     //h = (int)(dist*30) % 360;
     //s=1.0;

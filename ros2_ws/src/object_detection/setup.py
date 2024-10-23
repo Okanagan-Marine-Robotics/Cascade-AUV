@@ -21,6 +21,7 @@ setup(
     entry_points={
         'console_scripts': [
             'example_detector = object_detection.example_detector:main',
+            'dummy_detector = object_detection.dummy_detector:main',
             'image_data_merger = object_detection.image_data_merger:main',
             'data_collector = object_detection.data_collector:main',
         ],

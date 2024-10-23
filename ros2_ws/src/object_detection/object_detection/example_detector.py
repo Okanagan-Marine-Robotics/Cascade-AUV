@@ -2,10 +2,11 @@ import object_detection.detector
 from object_detection.detector import ObjectDetectorNode 
 import rclpy
 import numpy as np
-
+import time
 class ExampleDetector(ObjectDetectorNode):
     def __init__(self):
-        super().__init__(node_name="example_detector", using_keras=False)
+        super().__init__(node_name="example_detector")
+        #define model here if needed
 
     def inference(self,rgb,depth):
         #insert inferencing code here

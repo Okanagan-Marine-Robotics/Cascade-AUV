@@ -12,8 +12,8 @@ def generate_launch_description():
 
     return LaunchDescription([
         Node(
-            package='object_detection',
-            executable='dummy_detector',
+            package='object_detection',        
+            executable='yolo_coco_detector',
         ),
         Node(
             package='hardware_integration',

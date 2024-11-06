@@ -32,6 +32,7 @@ void find_object_callback(const std::shared_ptr<cascade_msgs::srv::FindObject::R
     float x,y,z;
     x=y=z=0;
     int total=0;
+    //the &x, &y , ... etc are all captured variables for the lambda
     auto voxel_lambda = [&x,&y,&z,&accessor, &grid, &total, &request](const voxelData& data, const Bonxai::CoordT& coord) {
         if(data.class_id==request->object_type){
             Bonxai::Point3D pos = grid.coordToPos(coord);
@@ -39,6 +40,12 @@ void find_object_callback(const std::shared_ptr<cascade_msgs::srv::FindObject::R
             y+=pos.y;
             z+=pos.z;
             total++;
+            //replace current pose estimation and implement icp here
+            //https://en.wikipedia.org/wiki/Iterative_closest_point
+            //https://pointclouds.org/documentation/classpcl_1_1_iterative_closest_point.html
+            //check out usage example ^^
+            //can use pcl
+            //can put pc matching in a seperate node
         }
     };
     grid.forEachCell(voxel_lambda);

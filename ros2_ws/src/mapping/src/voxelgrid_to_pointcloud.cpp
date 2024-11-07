@@ -22,17 +22,23 @@ shared_ptr<rclcpp::Node> node;
 rclcpp::Publisher<cascade_msgs::msg::VoxelGrid>::SharedPtr gridPublisher;
 bool inserting=false;
 
-double voxel_resolution = 0.02;
-Bonxai::VoxelGrid<voxelData> grid( voxel_resolution );
 
-void find_object_callback(const shared_ptr<cascade_msgs::srv::FindObject::Request> request,
-                                        shared_ptr<cascade_msgs::srv::FindObject::Response> response)
+void conversion_callback(const shared_ptr<cascade_msgs::srv::Vg2pc::Request> request,
+                                        shared_ptr<cascade_msgs::srv::Vg2pc::Response> response)
 {
-    auto accessor = grid.createAccessor();
-    float x,y,z;
-    x=y=z=0;
-    int total=0;
-    //the &x, &y , ... etc are all captured variables for the lambda
+    string serialized_data(request.data.begin(), request.data.end());
+
+    istringstream ifile(serialized_data, ios::binary);
+
+    char header[256];
+    ifile.getline(header, 256);
+    Bonxai::HeaderInfo info = Bonxai::GetHeaderInfo(header);
+    auto grid=Bonxai::Deserialize<voxelData>(ifile, info);
+
+    auto accessor = grid.createAccessor();//accessor for voxelgrid
+
+    std::ostringstream ofile(std::ios::binary);//output stream for pointcloud
+
     auto voxel_lambda = [&x,&y,&z,&accessor, &grid, &total, &request](const voxelData& data, const Bonxai::CoordT& coord) {
         if(data.class_id==request->object_type){
             Bonxai::Point3D pos = grid.coordToPos(coord);
@@ -62,15 +68,7 @@ void find_object_callback(const shared_ptr<cascade_msgs::srv::FindObject::Reques
 bool replaceCostmap(cascade_msgs::msg::VoxelGrid msg){
     if(loading || searching)return false;
     loading=true;
-    string serialized_data(msg.data.begin(), msg.data.end());
-
-    istringstream ifile(serialized_data, ios::binary);
-
-    char header[256];
-    ifile.getline(header, 256);
-    Bonxai::HeaderInfo info = Bonxai::GetHeaderInfo(header);
-    auto g=Bonxai::Deserialize<voxelData>(ifile, info);
-    costmap=move(g);
+        costmap=move(g);
     loading=false;
     inserted=true;
     return true;

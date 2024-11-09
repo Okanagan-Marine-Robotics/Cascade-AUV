@@ -19,11 +19,11 @@ class ExampleDetector(ObjectDetectorNode):
 
         # Define the HSV range for detecting blue
         # Lower and Upper ranges for red color in HSV
-        lower_red1 = np.array([0, 70, 50])
-        upper_red1 = np.array([10, 255, 255])
+        lower_red1 = np.array([250, 70, 50])
+        upper_red1 = np.array([255, 255, 255])
 
-        lower_red2 = np.array([170, 70, 50])
-        upper_red2 = np.array([180, 255, 255])
+        lower_red2 = np.array([0, 70, 50])
+        upper_red2 = np.array([10, 255, 255])
 
 
         # Create a binary mask where blue regions are set to 1 and others to 0
@@ -35,20 +35,10 @@ class ExampleDetector(ObjectDetectorNode):
         # Combine the two masks & Normalize to 0 and 1
         binary_mask = cv2.bitwise_or(mask1, mask2) // 255
 
-        # Calculate confidence based on distance to the center of each red range
-        hue_channel = hsv[:, :, 0].astype(np.float32)  # Get hue channel in float32 for calculations
-        confidence1 = np.clip((tolerance - np.abs(hue_channel - 5)) / tolerance, 0, 1) * 255
-        confidence2 = np.clip((tolerance - np.abs(hue_channel - 175)) / tolerance, 0, 1) * 255
-
-
-        # Combine the two confidence maps, taking the maximum confidence value at each pixel
-        confidence = np.maximum(confidence1, confidence2).astype(np.uint8)
-
         # Optional: Display results for testing
         cv2.imshow('Binary Mask', binary_mask * 255)  # Display as 0 and 255
-        cv2.imshow('Confidence Map', confidence)  # Confidence as a grayscale image
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
+        cv2.imshow('rgbimage', rgb)
+        cv2.waitKey(1)  # Display result continuously on one window
 
         # Return the binary mask for further processing
         # This is the old version of return statement, needs to be rewrite

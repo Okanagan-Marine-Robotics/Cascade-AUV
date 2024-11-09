@@ -22,13 +22,16 @@ class DataCollectorNode(Node):
             acceptable_delay)
         tss.registerCallback(self.synced_callback)
         self.file_num = 0
-        self.prefix = "~/data/tims_cup_0_photos"
+        self.prefix = "/home/ubuntu/data/tims_cup_0"
 
     def synced_callback(self, image_msg ,depth_msg):   
         color_frame = self.bridge.imgmsg_to_cv2(image_msg, 'bgr8')
         depth_frame = self.bridge.imgmsg_to_cv2(depth_msg, desired_encoding='16UC1')
         
         # Write the combined frame to photo file
+
+        self.get_logger().info(f'writing to {self.prefix}/{self.file_num}_png')
+
         cv2.imwrite(f"{self.prefix}/{self.file_num}_color.png", color_frame)
         cv2.imwrite(f"{self.prefix}/{self.file_num}_depth.png", depth_frame)
         self.file_num += 1

@@ -5,14 +5,7 @@ from cv_bridge import CvBridge, CvBridgeError
 import numpy as np
 import cv2
 import os
-import keras
-from keras import layers
-from tensorflow import data as tf_data
-import matplotlib.pyplot as plt
-import tensorflow as tf
 import logging
-from tensorflow.python.client import device_lib
-from keras.models import load_model
 from message_filters import ApproximateTimeSynchronizer, Subscriber
 
 class ObjectDetectorNode(Node):

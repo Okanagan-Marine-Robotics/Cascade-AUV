@@ -21,46 +21,25 @@ class DataCollectorNode(Node):
             queue_size,
             acceptable_delay)
         tss.registerCallback(self.synced_callback)
-        self.video_writer_color = None
-        self.video_writer_depth = None
+        self.file_num = 0
+        self.prefix = "/home/ubuntu/data/tims_cup_0"
 
     def synced_callback(self, image_msg ,depth_msg):   
         color_frame = self.bridge.imgmsg_to_cv2(image_msg, 'bgr8')
-        depth_frame = self.bridge.imgmsg_to_cv2(depth_msg, desired_encoding='passthrough')
-        # Convert depth frame to a format suitable for video saving
-        depth_frame_normalized = cv2.normalize(depth_frame, None, 0, 255, cv2.NORM_MINMAX)
-        depth_frame_normalized = cv2.convertScaleAbs(depth_frame_normalized)
-
-        depth_frame_colored = cv2.applyColorMap(depth_frame_normalized, cv2.COLORMAP_JET)
-
+        depth_frame = self.bridge.imgmsg_to_cv2(depth_msg, desired_encoding='16UC1')
         
-        if self.video_writer_color is None:
-            height, width, _ = color_frame.shape
-            self.video_writer_color = cv2.VideoWriter('color_output.mkv', cv2.VideoWriter_fourcc(*'X264'), 14.0, (width, height))
-        if self.video_writer_depth is None:
-            height, width, _ = depth_frame_colored.shape
-            self.video_writer_depth = cv2.VideoWriter('depth_output.mkv', cv2.VideoWriter_fourcc(*'X264'), 14.0, (width, height))
+        # Write the combined frame to photo file
 
-        # Write the combined frame to the video file
-        self.video_writer_color.write(color_frame)
-        self.video_writer_depth.write(depth_frame_colored)
+        self.get_logger().info(f'writing to {self.prefix}/{self.file_num}_png')
 
-    def destroy(self):
-        if self.video_writer_color:
-            self.video_writer_color.release()
-        if self.video_writer_depth:
-            self.video_writer_depth.release()
-
+        cv2.imwrite(f"{self.prefix}/{self.file_num}_color.png", color_frame)
+        cv2.imwrite(f"{self.prefix}/{self.file_num}_depth.png", depth_frame)
+        self.file_num += 1
 
 def main(args=None):
     rclpy.init(args=args)
     node = DataCollectorNode()
-    try:
-        rclpy.spin(node)
-    except KeyboardInterrupt:
-        pass
-    finally:
-        node.destroy()
+    rclpy.spin(node)
 
 if __name__ == '__main__':
     main()

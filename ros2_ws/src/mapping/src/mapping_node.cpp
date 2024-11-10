@@ -14,12 +14,51 @@
 #include <sstream>
 
 using namespace std;
-std::shared_ptr<rclcpp::Node> node;
+std::shared_ptr<rclcpp::Node> node, clientNode;
 rclcpp::Publisher<cascade_msgs::msg::VoxelGrid>::SharedPtr gridPublisher;
+rclcpp::Client<cascade_msgs::srv::Vg2pc>::SharedPtr conversion_client;
 bool inserting=false;
 
 double voxel_resolution = 0.02;
 Bonxai::VoxelGrid<voxelData> grid( voxel_resolution );
+
+cascade_msgs::srv::Vg2pc::Response sendConvesionRequest (cascade_msgs::srv::Vg2pc::Request request){            
+    auto request_ptr = std::make_shared<cascade_msgs::srv::Vg2pc::Request>(request);
+
+    while (!matching_client->wait_for_service(1s)) {
+        if (!rclcpp::ok()) {
+            RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the vg2pc service. Exiting.");
+        }
+        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "vg2pc service not available, waiting again...");
+    }
+
+    auto result = conversion_client->async_send_request(request_ptr);
+    // Wait for the result.
+    if (rclcpp::spin_until_future_complete(clientNode, result) !=
+        rclcpp::FutureReturnCode::SUCCESS){
+        RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Failed to call vg2pc conversion service");
+    }
+    return *result.get();
+}
+
+cascade_msgs::srv::Matching::Response sendMatchingRequest (cascade_msgs::srv::Matching::Request request){            
+    auto request_ptr = std::make_shared<cascade_msgs::srv::Matching::Request>(request);
+
+    while (!matching_client->wait_for_service(1s)) {
+        if (!rclcpp::ok()) {
+            RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the matching service. Exiting.");
+        }
+        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "matching service not available, waiting again...");
+    }
+
+    auto result = matching_client->async_send_request(request_ptr);
+    // Wait for the result.
+    if (rclcpp::spin_until_future_complete(clientNode, result) !=
+        rclcpp::FutureReturnCode::SUCCESS){
+        RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Failed to call matching service");
+    }
+    return *result.get();
+}
 
 void find_object_callback(const std::shared_ptr<cascade_msgs::srv::FindObject::Request> request,
                                         std::shared_ptr<cascade_msgs::srv::FindObject::Response>      response)
@@ -29,46 +68,22 @@ void find_object_callback(const std::shared_ptr<cascade_msgs::srv::FindObject::R
     std::string s=ofile.str();
     std::vector<unsigned char> charVector(s.begin(), s.end());
 
-    cascade_msgs::srv::Vg2pc::Request vg2pc_request;
+    cascade_msgs::srv::Vg2pc::Request conversion_request;
 
-    vg2pc_request.voxel_grid_data=charVector;
+    conversion_request.voxel_grid_data=charVector;
 
-    /* convert this code to send a vg2pc request
-     cascade_msgs::srv::Status::Response sendStatusRequest(){            
-            auto request = std::make_shared<cascade_msgs::srv::Status::Request>();
+    auto conversion_response = sendConvesionRequest(conversion_request);
+    //getting the eigen::vector3f pointcloud
 
-            while (!status_client->wait_for_service(1s)) {
-                if (!rclcpp::ok()) {
-                    RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service. Exiting.");
-                }
-                RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "service not available, waiting again...");
-            }
-
-            auto result = status_client->async_send_request(request);
-            // Wait for the result.
-            if (rclcpp::spin_until_future_complete(subNode, result) ==
-                rclcpp::FutureReturnCode::SUCCESS)
-            {
-                //RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "got object location");
-            } else {
-                RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Failed to call service find_object");
-            }
-            return *result.get();
-        }
-
-    */
-
-
-
-
-
-
-
-
-
-
-
+    cascade_msgs::srv::Matching::Request matching_request;
+    matching_request.actual = conversion_response.pointcloud
+    matching_request.reference = sensor_msgs::msg::PointCloud2();
+    //empty pointcloud for now
+    //TODO fill in the matching request reference pointcloud with an artifically genreated box
     
+    auto matching_response = sendMatchingRequest(matching_request)
+
+    response.pose = matching_response.pose;
 }
 
 void publishVoxelGrid(){
@@ -147,6 +162,7 @@ int main(int argc, char **argv)
     gridPublisher = node->create_publisher<cascade_msgs::msg::VoxelGrid>("/voxel_grid", 10);
 
     rclcpp::Service<cascade_msgs::srv::FindObject>::SharedPtr service=node->create_service<cascade_msgs::srv::FindObject>("find_object", &find_object_callback);
+    clientNode = rclcpp::Node::make_shared("_mapping_client");
 
     rclcpp::spin(node);
     rclcpp::shutdown();

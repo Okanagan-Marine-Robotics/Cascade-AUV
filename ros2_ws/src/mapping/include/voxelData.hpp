@@ -1,4 +1,5 @@
 #include <Eigen/Core>
+
 struct voxelData {
     float x,y,z;
     unsigned char class_id;
@@ -8,7 +9,7 @@ struct voxelData {
         : x(_x), y(_y), z(_z), class_id(id), confidence(conf), r(_r), g(_g),b(_b){}
     voxelData(){}//empty constructor
 
-    Eigen:Vector3d toEigen() const{
-        return Eigen:Vector3d(x,y,z);  
+    Eigen::Vector3d toEigen() const{
+        return Eigen::Vector3d(x,y,z);  
     }
 };

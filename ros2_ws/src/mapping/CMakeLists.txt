@@ -24,22 +24,23 @@ find_package(OpenMP REQUIRED)
 add_executable(mapping_node
  src/mapping_node.cpp
 )
+
+add_executable(conversion_node
+ src/conversion_node.cpp
+)
+
 add_executable(depth_to_pointcloud
     src/depth_to_pointcloud.cpp
 )
 add_executable(visualizer 
     src/visualizer.cpp)
 
-add_executable(serialization_test
-    src/serialization_test.cpp)
-
-add_executable(costmap_node
-    src/cost_map_node.cpp)
-
-target_include_directories(serialization_test PUBLIC include)
-
 ament_target_dependencies(mapping_node rclcpp sensor_msgs geometry_msgs cv_bridge message_filters tf2 tf2_ros image_transport tf2_geometry_msgs OpenCV cascade_msgs)
 target_include_directories(mapping_node PUBLIC include)
+
+ament_target_dependencies(conversion_node rclcpp sensor_msgs cascade_msgs)
+target_include_directories(conversion_node PUBLIC include)
+target_include_directories(conversion_node PUBLIC /usr/local/include/eigen3)
 
 ament_target_dependencies(depth_to_pointcloud rclcpp sensor_msgs geometry_msgs cv_bridge message_filters tf2 tf2_ros image_transport tf2_geometry_msgs OpenCV cascade_msgs OpenMP)
 target_include_directories(depth_to_pointcloud PUBLIC include)
@@ -49,17 +50,11 @@ ament_target_dependencies(visualizer rclcpp cascade_msgs glfw3 OpenGL tf2 tf2_ge
 target_link_libraries(visualizer ${OPENGL_LIBRARIES} glfw)
 target_include_directories(visualizer PUBLIC include)
 
-ament_target_dependencies(costmap_node rclcpp sensor_msgs geometry_msgs cv_bridge message_filters tf2 tf2_ros image_transport tf2_geometry_msgs OpenCV cascade_msgs)
-target_include_directories(costmap_node PUBLIC include)
-
-
-
 install(TARGETS
     depth_to_pointcloud
     mapping_node
+    conversion_node
     visualizer
-    serialization_test
-    costmap_node
     DESTINATION lib/${PROJECT_NAME})
 
 if(BUILD_TESTING)

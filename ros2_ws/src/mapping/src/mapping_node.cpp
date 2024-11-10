@@ -1,12 +1,9 @@
 #include "rclcpp/rclcpp.hpp"
-#include <opencv2/core/core.hpp>
 #include "sensor_msgs/msg/point_cloud2.hpp"
-#include <cv_bridge/cv_bridge.hpp>
 #include "geometry_msgs/msg/pose_stamped.hpp"
 #include "cascade_msgs/msg/classes.hpp"
 #include "cascade_msgs/srv/find_object.hpp"
 #include "cascade_msgs/msg/voxel_grid.hpp"
-#include <opencv2/core/core.hpp>
 #include <tf2/LinearMath/Transform.h>
 #include <tf2/LinearMath/Vector3.h>
 #include <tf2/LinearMath/Quaternion.h>
@@ -17,7 +14,6 @@
 #include <sstream>
 
 using namespace std;
-using namespace cv_bridge;
 std::shared_ptr<rclcpp::Node> node;
 rclcpp::Publisher<cascade_msgs::msg::VoxelGrid>::SharedPtr gridPublisher;
 bool inserting=false;

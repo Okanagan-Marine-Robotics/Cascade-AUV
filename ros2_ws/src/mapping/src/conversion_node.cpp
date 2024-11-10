@@ -21,11 +21,11 @@ void conversion_callback(const shared_ptr<cascade_msgs::srv::Vg2pc::Request> req
     Bonxai::HeaderInfo info = Bonxai::GetHeaderInfo(header);
     auto grid=Bonxai::Deserialize<voxelData>(ifile, info);
 
-    std::ostringstream ofile(std::ios::binary);//output stream for pointcloud
+    ostringstream ofile(ios::binary);//output stream for pointcloud
     int point_num=0;
 
     auto voxel_lambda = [&ofile, &point_num](const voxelData& data, const Bonxai::CoordT& coord) {
-            ofile.write(reinterpret_cast<const char*>(&data), sizeof(voxelData));
+            ofile.write(reinterpret_cast<const char*>(&data.eigen_vector), sizeof(voxelData.eigen_vector));
             point_num++;
     };//for each voxel in the grid, add it to the pointcloud
 
@@ -39,8 +39,8 @@ void conversion_callback(const shared_ptr<cascade_msgs::srv::Vg2pc::Request> req
     response->pointcloud.height=1;
     response->pointcloud.width=point_num;
     //cloudMsg.fields TODO FILL OUT POINTFIELD info
-    response->pointcloud.point_step=sizeof(voxelData);
-    response->pointcloud.row_step=sizeof(voxelData)*point_num;
+    response->pointcloud.point_step=sizeof(voxelData.eigen_vector);
+    response->pointcloud.row_step=sizeof(voxelData.eigen_vector)*point_num;
     response->pointcloud.data=charVector;
     response->pointcloud.is_dense=true;
 }

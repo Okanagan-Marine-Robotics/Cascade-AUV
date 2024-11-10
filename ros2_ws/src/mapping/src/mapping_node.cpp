@@ -24,35 +24,51 @@ Bonxai::VoxelGrid<voxelData> grid( voxel_resolution );
 void find_object_callback(const std::shared_ptr<cascade_msgs::srv::FindObject::Request> request,
                                         std::shared_ptr<cascade_msgs::srv::FindObject::Response>      response)
 {
-    auto accessor = grid.createAccessor();
-    float x,y,z;
-    x=y=z=0;
-    int total=0;
-    //the &x, &y , ... etc are all captured variables for the lambda
-    auto voxel_lambda = [&x,&y,&z,&accessor, &grid, &total, &request](const voxelData& data, const Bonxai::CoordT& coord) {
-        if(data.class_id==request->object_type){
-            Bonxai::Point3D pos = grid.coordToPos(coord);
-            x+=pos.x;
-            y+=pos.y;
-            z+=pos.z;
-            total++;
-            //replace current pose estimation and implement icp here
-            //https://en.wikipedia.org/wiki/Iterative_closest_point
-            //https://pointclouds.org/documentation/classpcl_1_1_iterative_closest_point.html
-            //check out usage example ^^
-            //can use pcl
-            //can put pc matching in a seperate node
+    std::ostringstream ofile(std::ios::binary);
+    Bonxai::Serialize(ofile, grid);
+    std::string s=ofile.str();
+    std::vector<unsigned char> charVector(s.begin(), s.end());
+
+    cascade_msgs::srv::Vg2pc::Request vg2pc_request;
+
+    vg2pc_request.voxel_grid_data=charVector;
+
+    /* convert this code to send a vg2pc request
+     cascade_msgs::srv::Status::Response sendStatusRequest(){            
+            auto request = std::make_shared<cascade_msgs::srv::Status::Request>();
+
+            while (!status_client->wait_for_service(1s)) {
+                if (!rclcpp::ok()) {
+                    RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service. Exiting.");
+                }
+                RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "service not available, waiting again...");
+            }
+
+            auto result = status_client->async_send_request(request);
+            // Wait for the result.
+            if (rclcpp::spin_until_future_complete(subNode, result) ==
+                rclcpp::FutureReturnCode::SUCCESS)
+            {
+                //RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "got object location");
+            } else {
+                RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Failed to call service find_object");
+            }
+            return *result.get();
         }
-    };
-    grid.forEachCell(voxel_lambda);
-    if(total>0){
-        response->pose.position.x=x/total;
-        response->pose.position.y=y/total;
-        response->pose.position.z=z/total;
-        response->exists=true;
-    }
-    else
-        response->exists=false;
+
+    */
+
+
+
+
+
+
+
+
+
+
+
+    
 }
 
 void publishVoxelGrid(){

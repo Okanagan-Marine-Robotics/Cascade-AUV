@@ -1,0 +1,4 @@
+sensor_msgs/PointCloud2 reference
+sensor_msgs/PointCloud2 actual
+---
+geometry_msgs/pose pose

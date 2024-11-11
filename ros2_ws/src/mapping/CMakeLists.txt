@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.8)
 project(mapping)
 
 add_compile_options(-O3)
+link_directories("$ENV{OPEN3D_ROOT}/lib")
+set(CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH};$ENV{OPEN3D_ROOT}")
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
@@ -20,9 +22,14 @@ find_package(tf2_geometry_msgs REQUIRED)
 find_package(glfw3 REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(OpenMP REQUIRED)
+find_package(Open3D REQUIRED)
 
 add_executable(mapping_node
  src/mapping_node.cpp
+)
+
+add_executable(matching_node
+ src/matching.cpp
 )
 
 add_executable(conversion_node
@@ -37,6 +44,12 @@ add_executable(visualizer
 
 ament_target_dependencies(mapping_node rclcpp sensor_msgs geometry_msgs cv_bridge message_filters tf2 tf2_ros image_transport tf2_geometry_msgs OpenCV cascade_msgs)
 target_include_directories(mapping_node PUBLIC include)
+target_include_directories(mapping_node PUBLIC /usr/local/include/eigen3)
+
+ament_target_dependencies(matching_node rclcpp sensor_msgs geometry_msgs cascade_msgs)
+target_include_directories(matching_node PUBLIC include)
+target_include_directories(matching_node PUBLIC /usr/local/include/eigen3)
+target_link_libraries(matching_node Open3D Open3D::Open3D)
 
 ament_target_dependencies(conversion_node rclcpp sensor_msgs cascade_msgs)
 target_include_directories(conversion_node PUBLIC include)

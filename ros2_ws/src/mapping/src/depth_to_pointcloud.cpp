@@ -22,6 +22,8 @@ std::shared_ptr<rclcpp::Node> node;
 rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr cloudPublisher;
 
 void projectDepthImage(const cascade_msgs::msg::ImageWithPose img) {
+    //TODO replace this with open3D pointcloud::CreateFromRGBDImage()
+    //move code to conversion node?
     cv::Mat depth_img = cv_bridge::toCvCopy(img.depth)->image;
     cv::Mat rgb_img = cv_bridge::toCvCopy(img.rgb)->image;
     cv::Mat label_img = cv_bridge::toCvCopy(img.label)->image;

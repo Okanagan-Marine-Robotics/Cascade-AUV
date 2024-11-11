@@ -1,0 +1,4 @@
+1. need to install eigen and run sudo make install -j 8
+2. need to install open3D c++ binaries from github
+3. need to sudo apt install libc++-dev libc++abi-dev
+4. add export $OPEN3D_ROOT=path_to_open3d to ~/.bashrc

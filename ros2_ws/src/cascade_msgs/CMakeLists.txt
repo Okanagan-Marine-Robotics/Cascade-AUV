@@ -23,6 +23,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
     msg/Dvl.msg
     srv/FindObject.srv
     srv/Vg2pc.srv
+    srv/Matching.srv
     srv/Status.srv
     msg/VoxelGrid.msg
     msg/Classes.msg

@@ -3,6 +3,8 @@
 #include "geometry_msgs/msg/pose_stamped.hpp"
 #include "cascade_msgs/msg/classes.hpp"
 #include "cascade_msgs/srv/find_object.hpp"
+#include "cascade_msgs/srv/matching.hpp"
+#include "cascade_msgs/srv/vg2pc.hpp"
 #include "cascade_msgs/msg/voxel_grid.hpp"
 #include <tf2/LinearMath/Transform.h>
 #include <tf2/LinearMath/Vector3.h>
@@ -17,6 +19,7 @@ using namespace std;
 std::shared_ptr<rclcpp::Node> node, clientNode;
 rclcpp::Publisher<cascade_msgs::msg::VoxelGrid>::SharedPtr gridPublisher;
 rclcpp::Client<cascade_msgs::srv::Vg2pc>::SharedPtr conversion_client;
+rclcpp::Client<cascade_msgs::srv::Matching>::SharedPtr matching_client;
 bool inserting=false;
 
 double voxel_resolution = 0.02;
@@ -70,20 +73,21 @@ void find_object_callback(const std::shared_ptr<cascade_msgs::srv::FindObject::R
 
     cascade_msgs::srv::Vg2pc::Request conversion_request;
 
-    conversion_request.voxel_grid_data=charVector;
+    conversion_request.voxel_grid.data=charVector;
 
     auto conversion_response = sendConvesionRequest(conversion_request);
     //getting the eigen::vector3f pointcloud
 
     cascade_msgs::srv::Matching::Request matching_request;
-    matching_request.actual = conversion_response.pointcloud
+    matching_request.actual = conversion_response.pointcloud;
     matching_request.reference = sensor_msgs::msg::PointCloud2();
     //empty pointcloud for now
     //TODO fill in the matching request reference pointcloud with an artifically genreated box
+    //eventually will be filling in the reference based on the find_object request type
     
-    auto matching_response = sendMatchingRequest(matching_request)
+    auto matching_response = sendMatchingRequest(matching_request);
 
-    response.pose = matching_response.pose;
+    response->pose = matching_response.pose;
 }
 
 void publishVoxelGrid(){
@@ -113,8 +117,8 @@ void decayAllVoxels(){//finish this
 }
 
 void insertDepthImage(const sensor_msgs::msg::PointCloud2 pc) {
-    auto accessor = grid.createAccessor();
     if (inserting) return; // Return fail to insert
+    auto accessor = grid.createAccessor();
     inserting = true; // Making sure we don't insert multiple depth scans at once
 
     decayAllVoxels();
@@ -163,6 +167,8 @@ int main(int argc, char **argv)
 
     rclcpp::Service<cascade_msgs::srv::FindObject>::SharedPtr service=node->create_service<cascade_msgs::srv::FindObject>("find_object", &find_object_callback);
     clientNode = rclcpp::Node::make_shared("_mapping_client");
+    conversion_client=clientNode->create_client<cascade_msgs::srv::Vg2pc>("conversion_server");
+    matching_client=clientNode->create_client<cascade_msgs::srv::Matching>("Matching");
 
     rclcpp::spin(node);
     rclcpp::shutdown();

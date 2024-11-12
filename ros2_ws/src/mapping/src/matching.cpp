@@ -21,13 +21,47 @@ open3d::geometry::PointCloud makeOpen3DPointCloud(sensor_msgs::msg::PointCloud2 
     return open3d::geometry::PointCloud(cloudData);
 }
 
+
+
 void matching_callback(const shared_ptr<cascade_msgs::srv::Matching::Request> request,
                                         shared_ptr<cascade_msgs::srv::Matching::Response> response) {
-    sensor_msgs::msg::PointCloud2 reference = request->reference, actual = request->actual;   
-    //extracting the pointclouds from the request
-    auto open3d_reference = makeOpen3DPointCloud(reference);
-    auto open3d_actual = makeOpen3DPointCloud(actual);
-    //run open3D fgr code   
+
+    // convert our pointcloud to open3d type
+    auto source = makeOpen3DPointCloud(request->source);
+    auto target = makeOpen3DPointCloud(request->target);
+
+    double search_radius = 5 * 0.02;
+    int max_neighbours = 100;
+
+    // get features
+    auto source_feature = pipelines::registration::ComputeFPFHFeature(source, 
+            open3d::geometry::KDTreeSearchParamHybrid(search_radius, max_neighbours)); // search radius, max neighbours
+    auto target_feature = pipelines::registration::ComputeFPFHFeature(target, 
+            open3d::geometry::KDTreeSearchParamHybrid(search_radius, max_neighbours));
+
+    // fast global registration args
+    double division_factor    = 1.4;
+    bool   use_abs_scale      = true;
+    bool   decrease_mu        = true;
+    double distance_threshold = 0.02 * 1.5;
+    int    max_iterations     = 100;
+    double touple_scale       = 0.95;
+    int    max_touples        = 100;
+
+    //preform fast global registration
+    pelines::registration::RegistrationResult result =
+        pipelines::registration::
+        FastGlobalRegistrationBasedOnFeatureMatching(*source, *target, *source_feature, *target_feature,
+                pipelines::registration::FastGlobalRegistrationOption(
+                    division_factor,
+                    use_abs_scale,
+                    max_correspondence,
+                    distance_threshold,
+                    max_iterations,
+                    touple_scale,
+                    max_tuples));
+
+     
 }
 
 

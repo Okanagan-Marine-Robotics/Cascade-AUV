@@ -21,24 +21,27 @@ open3d::geometry::PointCloud makeOpen3DPointCloud(sensor_msgs::msg::PointCloud2 
     return open3d::geometry::PointCloud(cloudData);
 }
 
-
-
 void matching_callback(const shared_ptr<cascade_msgs::srv::Matching::Request> request,
                                         shared_ptr<cascade_msgs::srv::Matching::Response> response) {
 
     RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "got matching request");
-
-    // convert our pointcloud to open3d type
+        // convert our pointcloud to open3d type
     auto source = makeOpen3DPointCloud(request->reference);
     auto target = makeOpen3DPointCloud(request->actual);
+    
+    open3d::io::WritePointCloud("test_source.pcd", source, {false, false});
+    open3d::io::WritePointCloud("test_target.pcd", target, {false, false});
 
     double search_radius = 5 * 0.02;
     int max_neighbours = 100;
-
+    source.EstimateNormals(
+            open3d::geometry::KDTreeSearchParamHybrid(2 * 0.02, 30));
+    target.EstimateNormals(
+            open3d::geometry::KDTreeSearchParamHybrid(2 * 0.02, 30));
     // get features
-    auto source_feature = pipelines::registration::ComputeFPFHFeature(source, 
+    auto source_feature = open3d::pipelines::registration::ComputeFPFHFeature(source, 
             open3d::geometry::KDTreeSearchParamHybrid(search_radius, max_neighbours)); // search radius, max neighbours
-    auto target_feature = pipelines::registration::ComputeFPFHFeature(target, 
+    auto target_feature = open3d::pipelines::registration::ComputeFPFHFeature(target, 
             open3d::geometry::KDTreeSearchParamHybrid(search_radius, max_neighbours));
 
     // fast global registration args
@@ -48,24 +51,25 @@ void matching_callback(const shared_ptr<cascade_msgs::srv::Matching::Request> re
     double distance_threshold = 0.02 * 1.5;
     int    max_iterations     = 100;
     double touple_scale       = 0.95;
-    int    max_touples        = 100;
+    int    max_tuples        = 1000;
 
     //preform fast global registration
-    pelines::registration::RegistrationResult result =
-        pipelines::registration::
-        FastGlobalRegistrationBasedOnFeatureMatching(*source, *target, *source_feature, *target_feature,
-                pipelines::registration::FastGlobalRegistrationOption(
+    open3d::pipelines::registration::RegistrationResult result =
+        open3d::pipelines::registration::
+        FastGlobalRegistrationBasedOnFeatureMatching(source, target, *source_feature, *target_feature,
+                open3d::pipelines::registration::FastGlobalRegistrationOption(
                     division_factor,
                     use_abs_scale,
-                    max_correspondence,
+                    decrease_mu,
                     distance_threshold,
                     max_iterations,
                     touple_scale,
                     max_tuples));
 
      
-    open3d::io::WritePointCloud("test_actual.pcd", actual, {false, false});
-    open3d::io::WritePointCloud("test_reference.pcd", reference, {false, false});
+    
+
+    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "fitness: %f",result.fitness_);
 }
 
 

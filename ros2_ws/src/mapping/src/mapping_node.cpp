@@ -25,7 +25,51 @@ bool inserting=false;
 double voxel_resolution = 0.02;
 Bonxai::VoxelGrid<voxelData> grid( voxel_resolution );
 
-cascade_msgs::srv::Vg2pc::Response sendConversionRequest (cascade_msgs::srv::Vg2pc::Request request){            
+void insertSphere(float radius){
+    auto accessor = grid.createAccessor();
+    vector<voxelData> cloudData;
+    for(float x=-radius;x<=radius;x+=voxel_resolution){
+        for(float y=-radius;y<=radius;y+=voxel_resolution){
+            for(float z=-radius;z<=radius;z+=voxel_resolution){
+                if(x*x + y*y + z*z < radius*radius)
+                cloudData.push_back(voxelData(x,y,z,0, 100, 255,0,0));
+            }
+        }   
+    }
+    for(voxelData vd : cloudData){
+        Bonxai::CoordT coord = grid.posToCoord(vd.x, vd.y, vd.z);
+        accessor.setValue(coord, vd); // Set voxel value to class ID
+    }
+    //publishVoxelGrid();
+}
+
+void insertBox(float radius){
+    auto accessor = grid.createAccessor();
+    vector<voxelData> cloudData;
+    for(float x=0;x<=radius;x+=voxel_resolution){
+        for(float y=0;y<=radius;y+=voxel_resolution){
+            for(float z=0;z<=radius;z+=voxel_resolution){
+                //if(abs(x)=radius-voxel_resolution*2 || abs(y)>=radius-voxel_resolution*2 || abs(z)>=radius-voxel_resolution*2)
+                cloudData.push_back(voxelData(x,y,z,0, 100, 255,0,0));
+            }
+        }   
+    }
+    for(voxelData vd : cloudData){
+        Bonxai::CoordT coord = grid.posToCoord(vd.x, vd.y, vd.z);
+        accessor.setValue(coord, vd); // Set voxel value to class ID
+    }
+    //publishVoxelGrid();
+}
+
+void deleteAllVoxels(){
+    auto accessor= grid.createAccessor();
+    auto lambda = [&accessor](const voxelData& data, const Bonxai::CoordT& coord) {
+        accessor.setCellOff(coord);
+    };
+    grid.forEachCell(lambda);
+}
+
+cascade_msgs::srv::Vg2pc::Response sendConversionRequest (cascade_msgs::srv::Vg2pc::Request request){          
     auto request_ptr = std::make_shared<cascade_msgs::srv::Vg2pc::Request>(request);
 
     while (!matching_client->wait_for_service(1s)) {
@@ -67,6 +111,9 @@ void find_object_callback(const std::shared_ptr<cascade_msgs::srv::FindObject::R
                                         std::shared_ptr<cascade_msgs::srv::FindObject::Response>      response)
 {
     RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "received find object request");
+
+    insertBox(0.3);
+
     std::ostringstream ofile(std::ios::binary);
     Bonxai::Serialize(ofile, grid);
     std::string s=ofile.str();
@@ -76,15 +123,27 @@ void find_object_callback(const std::shared_ptr<cascade_msgs::srv::FindObject::R
 
     conversion_request.voxel_grid.data=charVector;
 
+    deleteAllVoxels();
+    insertSphere(0.3);
+
+    std::ostringstream second_ofile(std::ios::binary);
+    Bonxai::Serialize(second_ofile, grid);
+    std::string s2=second_ofile.str();
+    std::vector<unsigned char> second_charVector(s2.begin(), s2.end());
+
+    cascade_msgs::srv::Vg2pc::Request second_conversion_request;
+
+    second_conversion_request.voxel_grid.data=second_charVector;
+
     RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "sending conversion request");
     auto conversion_response = sendConversionRequest(conversion_request);
+    auto second_conversion_response = sendConversionRequest(second_conversion_request);
+
     //getting the eigen::vector3f pointcloud
 
     cascade_msgs::srv::Matching::Request matching_request;
     matching_request.actual = conversion_response.pointcloud;
-    matching_request.reference = sensor_msgs::msg::PointCloud2();
-    //empty pointcloud for now
-    //TODO fill in the matching request reference pointcloud with an artifically genreated box
+    matching_request.reference = second_conversion_response.pointcloud;
     //eventually will be filling in the reference based on the find_object request type
     
     RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "sending matching request");
@@ -118,6 +177,7 @@ void decayAllVoxels(){//finish this
     };
     grid.forEachCell(lambda);
 }
+
 
 void insertDepthImage(const sensor_msgs::msg::PointCloud2 pc) {
     if (inserting) return; // Return fail to insert
@@ -156,24 +216,6 @@ void pc_subscription_callback(const sensor_msgs::msg::PointCloud2 &pc_msg){
     //insertDepthImage(pc_msg);
 }
 
-void insertBox(){
-    auto accessor = grid.createAccessor();
-    vector<voxelData> cloudData;
-    for(float x=0;x<=0.5;x+=voxel_resolution){
-        for(float y=0;y<=0.76;y+=voxel_resolution){
-            for(float z=0;z<=0.5;z+=voxel_resolution){
-                if(z==0 || x==0 || y==0 || x>=0.5 || y>=0.75 || z>=0.5)
-                cloudData.push_back(voxelData(x,y,z,0, 100, 255,0,0));
-            }
-        }   
-    }
-    for(voxelData vd : cloudData){
-        Bonxai::CoordT coord = grid.posToCoord(vd.x, vd.y, vd.z);
-        accessor.setValue(coord, vd); // Set voxel value to class ID
-    }
-    publishVoxelGrid();
-}
-
 int main(int argc, char **argv)
 {
     rclcpp::init(argc, argv);
@@ -190,7 +232,6 @@ int main(int argc, char **argv)
     clientNode = rclcpp::Node::make_shared("_mapping_client");
     conversion_client=clientNode->create_client<cascade_msgs::srv::Vg2pc>("vg2pc");
     matching_client=clientNode->create_client<cascade_msgs::srv::Matching>("pointcloud_matching");
-    insertBox();
 
     rclcpp::spin(node);
     rclcpp::shutdown();

@@ -12,6 +12,7 @@ shared_ptr<rclcpp::Node> node;
 void conversion_callback(const shared_ptr<cascade_msgs::srv::Vg2pc::Request> request,
                                         shared_ptr<cascade_msgs::srv::Vg2pc::Response> response)
 {
+    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "got conversion request");
     string serialized_data(request->voxel_grid.data.begin(), request->voxel_grid.data.end());
 
     istringstream ifile(serialized_data, ios::binary);
@@ -52,7 +53,7 @@ int main(int argc, char **argv)
 
     node = rclcpp::Node::make_shared("mapping_conversion_server");
 
-    rclcpp::Service<cascade_msgs::srv::Vg2pc>::SharedPtr service=node->create_service<cascade_msgs::srv::Vg2pc>("voxelgrid_to_pointcloud", &conversion_callback);
+    rclcpp::Service<cascade_msgs::srv::Vg2pc>::SharedPtr service=node->create_service<cascade_msgs::srv::Vg2pc>("vg2pc", &conversion_callback);
 
     rclcpp::spin(node);
     rclcpp::shutdown();

@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.8)
 project(mapping)
 
 add_compile_options(-O3)
+set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 link_directories("$ENV{OPEN3D_ROOT}/lib")
 set(CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH};$ENV{OPEN3D_ROOT}")
 
@@ -66,6 +67,7 @@ target_include_directories(visualizer PUBLIC include)
 install(TARGETS
     depth_to_pointcloud
     mapping_node
+    matching_node
     conversion_node
     visualizer
     DESTINATION lib/${PROJECT_NAME})

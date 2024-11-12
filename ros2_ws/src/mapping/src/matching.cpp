@@ -26,9 +26,11 @@ open3d::geometry::PointCloud makeOpen3DPointCloud(sensor_msgs::msg::PointCloud2 
 void matching_callback(const shared_ptr<cascade_msgs::srv::Matching::Request> request,
                                         shared_ptr<cascade_msgs::srv::Matching::Response> response) {
 
+    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "got matching request");
+
     // convert our pointcloud to open3d type
-    auto source = makeOpen3DPointCloud(request->source);
-    auto target = makeOpen3DPointCloud(request->target);
+    auto source = makeOpen3DPointCloud(request->reference);
+    auto target = makeOpen3DPointCloud(request->actual);
 
     double search_radius = 5 * 0.02;
     int max_neighbours = 100;
@@ -62,6 +64,8 @@ void matching_callback(const shared_ptr<cascade_msgs::srv::Matching::Request> re
                     max_tuples));
 
      
+    open3d::io::WritePointCloud("test_actual.pcd", actual, {false, false});
+    open3d::io::WritePointCloud("test_reference.pcd", reference, {false, false});
 }
 
 
@@ -71,7 +75,7 @@ int main(int argc, char **argv)
 
     node = rclcpp::Node::make_shared("matching_server");
 
-    rclcpp::Service<cascade_msgs::srv::Matching>::SharedPtr service=node->create_service<cascade_msgs::srv::Matching>("Matching", &matching_callback);
+    rclcpp::Service<cascade_msgs::srv::Matching>::SharedPtr service=node->create_service<cascade_msgs::srv::Matching>("pointcloud_matching", &matching_callback);
 
     rclcpp::spin(node);
     rclcpp::shutdown();

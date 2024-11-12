@@ -25,9 +25,12 @@ void matching_callback(const shared_ptr<cascade_msgs::srv::Matching::Request> re
                                         shared_ptr<cascade_msgs::srv::Matching::Response> response) {
     sensor_msgs::msg::PointCloud2 reference = request->reference, actual = request->actual;   
     //extracting the pointclouds from the request
+    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "got matching request");
     auto open3d_reference = makeOpen3DPointCloud(reference);
     auto open3d_actual = makeOpen3DPointCloud(actual);
     //run open3D fgr code   
+    //visualize the 2 pointclouds
+    open3d::io::WritePointCloud("test_box.pcd", open3d_actual, {false, false});
 }
 
 
@@ -37,7 +40,7 @@ int main(int argc, char **argv)
 
     node = rclcpp::Node::make_shared("matching_server");
 
-    rclcpp::Service<cascade_msgs::srv::Matching>::SharedPtr service=node->create_service<cascade_msgs::srv::Matching>("Matching", &matching_callback);
+    rclcpp::Service<cascade_msgs::srv::Matching>::SharedPtr service=node->create_service<cascade_msgs::srv::Matching>("pointcloud_matching", &matching_callback);
 
     rclcpp::spin(node);
     rclcpp::shutdown();

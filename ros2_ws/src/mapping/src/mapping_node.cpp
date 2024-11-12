@@ -25,7 +25,7 @@ bool inserting=false;
 double voxel_resolution = 0.02;
 Bonxai::VoxelGrid<voxelData> grid( voxel_resolution );
 
-cascade_msgs::srv::Vg2pc::Response sendConvesionRequest (cascade_msgs::srv::Vg2pc::Request request){            
+cascade_msgs::srv::Vg2pc::Response sendConversionRequest (cascade_msgs::srv::Vg2pc::Request request){            
     auto request_ptr = std::make_shared<cascade_msgs::srv::Vg2pc::Request>(request);
 
     while (!matching_client->wait_for_service(1s)) {
@@ -66,6 +66,7 @@ cascade_msgs::srv::Matching::Response sendMatchingRequest (cascade_msgs::srv::Ma
 void find_object_callback(const std::shared_ptr<cascade_msgs::srv::FindObject::Request> request,
                                         std::shared_ptr<cascade_msgs::srv::FindObject::Response>      response)
 {
+    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "received find object request");
     std::ostringstream ofile(std::ios::binary);
     Bonxai::Serialize(ofile, grid);
     std::string s=ofile.str();
@@ -75,7 +76,8 @@ void find_object_callback(const std::shared_ptr<cascade_msgs::srv::FindObject::R
 
     conversion_request.voxel_grid.data=charVector;
 
-    auto conversion_response = sendConvesionRequest(conversion_request);
+    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "sending conversion request");
+    auto conversion_response = sendConversionRequest(conversion_request);
     //getting the eigen::vector3f pointcloud
 
     cascade_msgs::srv::Matching::Request matching_request;
@@ -85,6 +87,7 @@ void find_object_callback(const std::shared_ptr<cascade_msgs::srv::FindObject::R
     //TODO fill in the matching request reference pointcloud with an artifically genreated box
     //eventually will be filling in the reference based on the find_object request type
     
+    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "sending matching request");
     auto matching_response = sendMatchingRequest(matching_request);
 
     response->pose = matching_response.pose;
@@ -150,7 +153,25 @@ void insertDepthImage(const sensor_msgs::msg::PointCloud2 pc) {
 
 void pc_subscription_callback(const sensor_msgs::msg::PointCloud2 &pc_msg){
     //possibly add a queue for inserting the depth maps?
-    insertDepthImage(pc_msg);
+    //insertDepthImage(pc_msg);
+}
+
+void insertBox(){
+    auto accessor = grid.createAccessor();
+    vector<voxelData> cloudData;
+    for(float x=0;x<=0.5;x+=voxel_resolution){
+        for(float y=0;y<=0.76;y+=voxel_resolution){
+            for(float z=0;z<=0.5;z+=voxel_resolution){
+                if(z==0 || x==0 || y==0 || x>=0.5 || y>=0.75 || z>=0.5)
+                cloudData.push_back(voxelData(x,y,z,0, 100, 255,0,0));
+            }
+        }   
+    }
+    for(voxelData vd : cloudData){
+        Bonxai::CoordT coord = grid.posToCoord(vd.x, vd.y, vd.z);
+        accessor.setValue(coord, vd); // Set voxel value to class ID
+    }
+    publishVoxelGrid();
 }
 
 int main(int argc, char **argv)
@@ -167,8 +188,9 @@ int main(int argc, char **argv)
 
     rclcpp::Service<cascade_msgs::srv::FindObject>::SharedPtr service=node->create_service<cascade_msgs::srv::FindObject>("find_object", &find_object_callback);
     clientNode = rclcpp::Node::make_shared("_mapping_client");
-    conversion_client=clientNode->create_client<cascade_msgs::srv::Vg2pc>("conversion_server");
-    matching_client=clientNode->create_client<cascade_msgs::srv::Matching>("Matching");
+    conversion_client=clientNode->create_client<cascade_msgs::srv::Vg2pc>("vg2pc");
+    matching_client=clientNode->create_client<cascade_msgs::srv::Matching>("pointcloud_matching");
+    insertBox();
 
     rclcpp::spin(node);
     rclcpp::shutdown();

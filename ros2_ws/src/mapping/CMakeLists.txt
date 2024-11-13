@@ -37,6 +37,10 @@ add_executable(conversion_node
  src/conversion_node.cpp
 )
 
+add_executable(matching_test
+ src/test.cpp
+)
+
 add_executable(depth_to_pointcloud
     src/depth_to_pointcloud.cpp
 )
@@ -51,6 +55,10 @@ ament_target_dependencies(matching_node rclcpp sensor_msgs geometry_msgs cascade
 target_include_directories(matching_node PUBLIC include)
 target_include_directories(matching_node PUBLIC /usr/local/include/eigen3)
 target_link_libraries(matching_node Open3D Open3D::Open3D)
+
+target_include_directories(matching_test PUBLIC include)
+target_include_directories(matching_test PUBLIC /usr/local/include/eigen3)
+target_link_libraries(matching_test Open3D Open3D::Open3D)
 
 ament_target_dependencies(conversion_node rclcpp sensor_msgs cascade_msgs)
 target_include_directories(conversion_node PUBLIC include)

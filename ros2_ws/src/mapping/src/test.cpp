@@ -18,23 +18,32 @@ vector<Vector3d> sphere_pointcloud(unsigned n, double radius) {
     
 }
 
-vector<Vector3d> square_pointcloud(unsigned n, double w, double l, double h) {
-    
+vector<Vector3d> square_pointcloud(double w, double l, double h) {
+    vector<Vector3d> cloudData;
+    for(float x=-w/2;x<=w/2;x+=voxel_size){
+        for(float y=-l/2;y<=l/2;y+=voxel_resolution){
+            for(float z=-h/2;z<=h/2;z+=voxel_resolution){
+                if(abs(x)>=w-voxel_size*2 || abs(y)>=radius-voxel_resolution*2 || abs(z)>=radius-voxel_resolution*2)
+                cloudData.push_back(voxelData(x,y,z,0, 100, 255,0,0));
+            }
+        }   
+    }
+    return cloudData;
 }
 
 open3d::geometry::PointCloud generatePool(){
     vector<Vector3d> cloudData;
     //make floor
-    cloudData.append_range(square_pointcloud(1000, 10, 25, 0.03, vector(0,0,0)));
+    cloudData.append_range(square_pointcloud(10, 25, 0.03, vector(0,0,0)));
     //make walls
-    cloudData.append_range(square_pointcloud(1000, 0.03, 25, 6, vector<float>(-5,0,3)));
-    cloudData.append_range(square_pointcloud(1000, 0.03, 25, 6, vector<float>(5,0,3)));
-    cloudData.append_range(square_pointcloud(500, 10, 0.03, 6, vector<float>(0,-12.5,3)));
-    cloudData.append_range(square_pointcloud(500, 10, 0.03, 6, vector<float>(0,12.5,3)));
+    cloudData.append_range(square_pointcloud(0.03, 25, 6, vector<float>(-5,0,3)));
+    cloudData.append_range(square_pointcloud(0.03, 25, 6, vector<float>(5,0,3)));
+    cloudData.append_range(square_pointcloud(10, 0.03, 6, vector<float>(0,-12.5,3)));
+    cloudData.append_range(square_pointcloud(10, 0.03, 6, vector<float>(0,12.5,3)));
     //make gate
-    cloudData.append_range(square_pointcloud(200, 0.05, 0.05, 1, vector<float>(-1,0,3)));
-    cloudData.append_range(square_pointcloud(200, 0.05, 0.05, 1, vector<float>(1,0,3)));
-    cloudData.append_range(square_pointcloud(200, 2, 0.05, 0.05, vector<float>(0,0,3.5)));
+    cloudData.append_range(square_pointcloud(0.05, 0.05, 1, vector<float>(-1,0,3)));
+    cloudData.append_range(square_pointcloud(0.05, 0.05, 1, vector<float>(1,0,3)));
+    cloudData.append_range(square_pointcloud(2, 0.05, 0.05, vector<float>(0,0,3.5)));
     return open3d::geometry::PointCloud(cloudData);
 }
 

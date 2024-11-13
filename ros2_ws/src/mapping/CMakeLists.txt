@@ -43,7 +43,7 @@ add_executable(depth_to_pointcloud
 add_executable(visualizer 
     src/visualizer.cpp)
 
-ament_target_dependencies(mapping_node rclcpp sensor_msgs geometry_msgs cv_bridge message_filters tf2 tf2_ros image_transport tf2_geometry_msgs OpenCV cascade_msgs)
+ament_target_dependencies(mapping_node rclcpp sensor_msgs geometry_msgs tf2 tf2_ros image_transport tf2_geometry_msgs cascade_msgs)
 target_include_directories(mapping_node PUBLIC include)
 target_include_directories(mapping_node PUBLIC /usr/local/include/eigen3)
 

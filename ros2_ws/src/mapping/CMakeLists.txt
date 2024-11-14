@@ -76,6 +76,7 @@ install(TARGETS
     depth_to_pointcloud
     mapping_node
     matching_node
+    matching_test
     conversion_node
     visualizer
     DESTINATION lib/${PROJECT_NAME})

@@ -8,7 +8,7 @@
 using namespace std;
 using Eigen::Vector3d;
 
-float voxel_size=0.02;
+float voxel_size=0.04;
 
 vector<Vector3d> load_pointcloud(string filename) {
     
@@ -18,37 +18,116 @@ vector<Vector3d> sphere_pointcloud(unsigned n, double radius) {
     
 }
 
-vector<Vector3d> square_pointcloud(double w, double l, double h) {
+vector<Vector3d> square_pointcloud(float w, float l, float h, float xd, float yd, float zd) {
     vector<Vector3d> cloudData;
     for(float x=-w/2;x<=w/2;x+=voxel_size){
-        for(float y=-l/2;y<=l/2;y+=voxel_resolution){
-            for(float z=-h/2;z<=h/2;z+=voxel_resolution){
-                if(abs(x)>=w-voxel_size*2 || abs(y)>=radius-voxel_resolution*2 || abs(z)>=radius-voxel_resolution*2)
-                cloudData.push_back(voxelData(x,y,z,0, 100, 255,0,0));
+        for(float y=-l/2;y<=l/2;y+=voxel_size){
+            for(float z=-h/2;z<=h/2;z+=voxel_size){
+                if(abs(x)>=w/2-voxel_size*2 || abs(y)>=l/2-voxel_size*2 || abs(z)>=h/2-voxel_size*2)
+                cloudData.push_back(Vector3d(x+xd,y+yd,z+zd));
             }
         }   
     }
     return cloudData;
 }
 
+vector<Vector3d> noise_pointcloud(float w, float l, float h, float xd, float yd, float zd, int sparseness) {
+    vector<Vector3d> cloudData;
+    for(float x=-w/2;x<=w/2;x+=voxel_size){
+        for(float y=-l/2;y<=l/2;y+=voxel_size){
+            for(float z=-h/2;z<=h/2;z+=voxel_size){
+                int random = rand() % sparseness;
+                if(random == sparseness/2)
+                cloudData.push_back(Vector3d(x+xd,y+yd,z+zd));
+            }
+        }   
+    }
+    return cloudData;
+}
+void stretch(vector<Vector3d> &vec, float factor){//adds noise to each point in a pointcloud
+    for(Vector3d &v: vec){
+            v *= factor;
+        
+    }
+}
+
+void noiseUp(vector<Vector3d> &vec, int max_dist, int frequency){//adds noise to each point in a pointcloud
+    for(Vector3d &v: vec){
+        if(rand() % 100 > 100 - frequency){//randomly @ frequency
+            auto random = Vector3d((rand()%max_dist - max_dist/2) / 100.0,(rand()%max_dist - max_dist/2) / 100.0,(rand()%max_dist - max_dist/2) / 100.0);//move the point up to 5cm
+            v += random;
+        }
+    }
+}
+
 open3d::geometry::PointCloud generatePool(){
     vector<Vector3d> cloudData;
     //make floor
-    cloudData.append_range(square_pointcloud(10, 25, 0.03, vector(0,0,0)));
+    auto temp = square_pointcloud(2.5, 5, 0.03, 0,0,0);
+    cloudData.insert(cloudData.begin(), temp.begin(), temp.end());
     //make walls
-    cloudData.append_range(square_pointcloud(0.03, 25, 6, vector<float>(-5,0,3)));
-    cloudData.append_range(square_pointcloud(0.03, 25, 6, vector<float>(5,0,3)));
-    cloudData.append_range(square_pointcloud(10, 0.03, 6, vector<float>(0,-12.5,3)));
-    cloudData.append_range(square_pointcloud(10, 0.03, 6, vector<float>(0,12.5,3)));
+    temp = square_pointcloud(0.03, 5, 2, -1.25,0,1);
+    cloudData.insert(cloudData.begin(), temp.begin(), temp.end());
+    temp = square_pointcloud(0.03, 5, 2, 1.25,0,1);
+    cloudData.insert(cloudData.begin(), temp.begin(), temp.end());
+    temp = square_pointcloud(2.5, 0.03, 2, 0,-2.5,1);
+    cloudData.insert(cloudData.begin(), temp.begin(), temp.end());
+    temp = square_pointcloud(2.5, 0.03, 2, 0,2.5,1);
+    cloudData.insert(cloudData.begin(), temp.begin(), temp.end());
+    square_pointcloud(2.5, 0.03, 2, 0,2.5,1);
+    cloudData.insert(cloudData.begin(), temp.begin(), temp.end());
+    noiseUp(cloudData,10,10);
+    stretch(cloudData,2);
     //make gate
-    cloudData.append_range(square_pointcloud(0.05, 0.05, 1, vector<float>(-1,0,3)));
-    cloudData.append_range(square_pointcloud(0.05, 0.05, 1, vector<float>(1,0,3)));
-    cloudData.append_range(square_pointcloud(2, 0.05, 0.05, vector<float>(0,0,3.5)));
+    temp = square_pointcloud(0.05, 0.05, 1, -1,0,1+1);
+    cloudData.insert(cloudData.begin(), temp.begin(), temp.end());
+    temp = square_pointcloud(0.05, 0.05, 1, 1,0,1+1);
+    cloudData.insert(cloudData.begin(), temp.begin(), temp.end());
+    temp = square_pointcloud(2, 0.05, 0.05, 0,0,1.5+1);
+    cloudData.insert(cloudData.begin(), temp.begin(), temp.end()); 
+
+    temp = square_pointcloud(0.05, 0.05, 1, -2+5,0,1);
+    cloudData.insert(cloudData.begin(), temp.begin(), temp.end());
+    temp = square_pointcloud(0.05, 0.05, 1, 2+5,0,1);
+    cloudData.insert(cloudData.begin(), temp.begin(), temp.end());
+    temp = square_pointcloud(4, 0.05, 0.05, 0+5,0,1.5);
+    cloudData.insert(cloudData.begin(), temp.begin(), temp.end());
+
+    noiseUp(cloudData,4,5);
+
+    //temp = noise_pointcloud(5, 5, 5, 0,0,0,1000);
+    //cloudData.insert(cloudData.begin(), temp.begin(), temp.end());
     return open3d::geometry::PointCloud(cloudData);
 }
 
-open3d::pipelines::registration::RegistrationResult fgr(open3d::geometry::PointCloud source, open3d::geometry::PointCloud target){
 
+
+open3d::geometry::PointCloud generateGate(float x, float y, float z){
+    vector<Vector3d> cloudData;
+    //make gate
+    auto temp = square_pointcloud(0.05, 0.05, 1, -1+x,0+y,3+z);
+    cloudData.insert(cloudData.begin(), temp.begin(), temp.end());
+    temp = square_pointcloud(0.05, 0.05, 1, 1+x,0+y,3+z);
+    cloudData.insert(cloudData.begin(), temp.begin(), temp.end());
+    temp = square_pointcloud(2, 0.05, 0.05, 0+x,0+y,3.5+z);
+    cloudData.insert(cloudData.begin(), temp.begin(), temp.end());
+    return open3d::geometry::PointCloud(cloudData);
+}
+void VisualizeRegistration(const open3d::geometry::PointCloud &source,
+                           const open3d::geometry::PointCloud &target,
+                           const Eigen::Matrix4d &Transformation) {
+    std::shared_ptr<open3d::geometry::PointCloud> source_transformed_ptr(
+            new open3d::geometry::PointCloud);
+    std::shared_ptr<open3d::geometry::PointCloud> target_ptr(new open3d::geometry::PointCloud);
+    *source_transformed_ptr = source;
+    *target_ptr = target;
+    source_transformed_ptr->Transform(Transformation);
+    open3d::visualization::DrawGeometries({source_transformed_ptr, target_ptr},
+                                  "Registration result");
+}
+open3d::pipelines::registration::RegistrationResult fgr(open3d::geometry::PointCloud &source, open3d::geometry::PointCloud &target){
+    //source = *source.VoxelDownSample(voxel_size);
+    //target = *target.VoxelDownSample(voxel_size);
     source.EstimateNormals(
             open3d::geometry::KDTreeSearchParamHybrid(2 * voxel_size, 30));
     target.EstimateNormals(
@@ -63,8 +142,8 @@ open3d::pipelines::registration::RegistrationResult fgr(open3d::geometry::PointC
     double division_factor    = 1.4;
     bool   use_abs_scale      = true;
     bool   decrease_mu        = true;
-    double distance_threshold = 0.02 * 1.5;
-    int    max_iterations     = 100;
+    double distance_threshold = voxel_size * 1;
+    int    max_iterations     = 200;
     double touple_scale       = 0.95;
     int    max_tuples        = 1000;
 
@@ -85,8 +164,15 @@ open3d::pipelines::registration::RegistrationResult fgr(open3d::geometry::PointC
 
 int main() {
     //generate or load 2 pointclouds
-    generatePool();
+    srand (time(NULL));
+    auto target = generatePool();
+    auto source = generateGate(0,50,3);
     auto results = fgr(source,target);
+    open3d::io::WritePointCloud("test_source.pcd", source, {false, false});
+    open3d::io::WritePointCloud("test_target.pcd", target, {false, false});
+    VisualizeRegistration(source, target,results.transformation_);
+    
+    cout << results.fitness_ << '\n';
 
     return 0;
 }

@@ -112,8 +112,6 @@ void find_object_callback(const std::shared_ptr<cascade_msgs::srv::FindObject::R
 {
     RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "received find object request");
 
-    insertBox(0.3);
-
     std::ostringstream ofile(std::ios::binary);
     Bonxai::Serialize(ofile, grid);
     std::string s=ofile.str();
@@ -123,27 +121,14 @@ void find_object_callback(const std::shared_ptr<cascade_msgs::srv::FindObject::R
 
     conversion_request.voxel_grid.data=charVector;
 
-    deleteAllVoxels();
-    insertSphere(0.3);
-
-    std::ostringstream second_ofile(std::ios::binary);
-    Bonxai::Serialize(second_ofile, grid);
-    std::string s2=second_ofile.str();
-    std::vector<unsigned char> second_charVector(s2.begin(), s2.end());
-
-    cascade_msgs::srv::Vg2pc::Request second_conversion_request;
-
-    second_conversion_request.voxel_grid.data=second_charVector;
-
     RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "sending conversion request");
     auto conversion_response = sendConversionRequest(conversion_request);
-    auto second_conversion_response = sendConversionRequest(second_conversion_request);
 
-    //getting the eigen::vector3f pointcloud
+    //getting the voxelData pointcloud
 
     cascade_msgs::srv::Matching::Request matching_request;
     matching_request.actual = conversion_response.pointcloud;
-    matching_request.reference = second_conversion_response.pointcloud;
+    matching_request.reference = box.pointcloud;
     //eventually will be filling in the reference based on the find_object request type
     
     RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "sending matching request");
@@ -213,7 +198,7 @@ void insertDepthImage(const sensor_msgs::msg::PointCloud2 pc) {
 
 void pc_subscription_callback(const sensor_msgs::msg::PointCloud2 &pc_msg){
     //possibly add a queue for inserting the depth maps?
-    //insertDepthImage(pc_msg);
+    insertDepthImage(pc_msg);
 }
 
 int main(int argc, char **argv)

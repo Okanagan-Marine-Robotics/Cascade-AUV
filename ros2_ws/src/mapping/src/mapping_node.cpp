@@ -18,6 +18,7 @@
 using namespace std;
 std::shared_ptr<rclcpp::Node> node, clientNode;
 rclcpp::Publisher<cascade_msgs::msg::VoxelGrid>::SharedPtr gridPublisher;
+sensor_msgs::msg::PointCloud2 box_pointcloud;
 rclcpp::Client<cascade_msgs::srv::Vg2pc>::SharedPtr conversion_client;
 rclcpp::Client<cascade_msgs::srv::Matching>::SharedPtr matching_client;
 bool inserting=false;
@@ -43,13 +44,13 @@ void insertSphere(float radius){
     //publishVoxelGrid();
 }
 
-void insertBox(float radius){
+void insertBox(float w, float l, float h){
     auto accessor = grid.createAccessor();
     vector<voxelData> cloudData;
-    for(float x=0;x<=radius;x+=voxel_resolution){
-        for(float y=0;y<=radius;y+=voxel_resolution){
-            for(float z=0;z<=radius;z+=voxel_resolution){
-                //if(abs(x)=radius-voxel_resolution*2 || abs(y)>=radius-voxel_resolution*2 || abs(z)>=radius-voxel_resolution*2)
+    for(float x=-w/2;x<=w/2;x+=voxel_resolution){
+        for(float y=-l/2;y<=l/2;y+=voxel_resolution){
+            for(float z=-h/2;z<=h/2;z+=voxel_resolution){
+                if(abs(x)>=w/2-voxel_resolution*2 || abs(y)>=l/2-voxel_resolution*2 || abs(z)>=h/2-voxel_resolution*2)
                 cloudData.push_back(voxelData(x,y,z,0, 100, 255,0,0));
             }
         }   
@@ -70,6 +71,8 @@ void deleteAllVoxels(){
 }
 
 cascade_msgs::srv::Vg2pc::Response sendConversionRequest (cascade_msgs::srv::Vg2pc::Request request){          
+    
+
     auto request_ptr = std::make_shared<cascade_msgs::srv::Vg2pc::Request>(request);
 
     while (!matching_client->wait_for_service(1s)) {
@@ -111,7 +114,7 @@ void find_object_callback(const std::shared_ptr<cascade_msgs::srv::FindObject::R
                                         std::shared_ptr<cascade_msgs::srv::FindObject::Response>      response)
 {
     RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "received find object request");
-
+   
     std::ostringstream ofile(std::ios::binary);
     Bonxai::Serialize(ofile, grid);
     std::string s=ofile.str();
@@ -120,21 +123,31 @@ void find_object_callback(const std::shared_ptr<cascade_msgs::srv::FindObject::R
     cascade_msgs::srv::Vg2pc::Request conversion_request;
 
     conversion_request.voxel_grid.data=charVector;
-
-    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "sending conversion request");
     auto conversion_response = sendConversionRequest(conversion_request);
 
     //getting the voxelData pointcloud
 
     cascade_msgs::srv::Matching::Request matching_request;
     matching_request.actual = conversion_response.pointcloud;
-    matching_request.reference = box.pointcloud;
+    matching_request.reference = box_pointcloud;
     //eventually will be filling in the reference based on the find_object request type
     
     RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "sending matching request");
     auto matching_response = sendMatchingRequest(matching_request);
 
     response->pose = matching_response.pose;
+}
+
+cascade_msgs::msg::VoxelGrid serializeGrid(){
+    std::ostringstream ofile(std::ios::binary);
+    Bonxai::Serialize(ofile, grid);
+    std::string s=ofile.str();
+    
+    cascade_msgs::msg::VoxelGrid gridMsg;
+
+    std::vector<unsigned char> charVector(s.begin(), s.end());
+    gridMsg.data=charVector;
+    return gridMsg;
 }
 
 void publishVoxelGrid(){
@@ -170,7 +183,7 @@ void insertDepthImage(const sensor_msgs::msg::PointCloud2 pc) {
     inserting = true; // Making sure we don't insert multiple depth scans at once
 
     decayAllVoxels();
-    
+
     //deserializing data
 
     std::string serialized_data(pc.data.begin(), pc.data.end());
@@ -217,6 +230,16 @@ int main(int argc, char **argv)
     clientNode = rclcpp::Node::make_shared("_mapping_client");
     conversion_client=clientNode->create_client<cascade_msgs::srv::Vg2pc>("vg2pc");
     matching_client=clientNode->create_client<cascade_msgs::srv::Matching>("pointcloud_matching");
+
+    insertBox(0.3,0.2,0.25);//sample box for testing fgr
+    
+    cascade_msgs::srv::Vg2pc::Request request;
+
+    request.voxel_grid = serializeGrid();
+
+    auto conversion_response = sendConversionRequest(request);
+    box_pointcloud = conversion_response.pointcloud;
+    deleteAllVoxels();
 
     rclcpp::spin(node);
     rclcpp::shutdown();

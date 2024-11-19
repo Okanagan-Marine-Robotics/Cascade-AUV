@@ -66,10 +66,19 @@ void matching_callback(const shared_ptr<cascade_msgs::srv::Matching::Request> re
                     touple_scale,
                     max_tuples));
 
-     
-    
-
     RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "fitness: %f",result.fitness_);
+
+    std::shared_ptr<open3d::geometry::PointCloud> source_transformed_ptr(
+            new open3d::geometry::PointCloud);
+    std::shared_ptr<open3d::geometry::PointCloud> target_ptr(new open3d::geometry::PointCloud);
+    *source_transformed_ptr = source;
+    *target_ptr = target;
+    source_transformed_ptr->Transform(result.transformation_);
+    open3d::visualization::DrawGeometries({source_transformed_ptr, target_ptr},
+                                  "Registration result");
+    
+    //TODO convert result.transformation_ (4x4 matrix) to a pose message (x y z, quaternion)
+
 }
 
 

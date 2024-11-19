@@ -13,7 +13,7 @@ def generate_launch_description():
     return LaunchDescription([
         Node(
             package='object_detection',        
-            executable='yolo_coco_detector',
+            executable='dummy_detector',
         ),
         Node(
             package='hardware_integration',
@@ -52,6 +52,16 @@ def generate_launch_description():
        Node(
             package='navigation',
             executable='dead_reckoning',
-        )    
+        )   ,
+        Node(
+            package='mapping',
+            executable='matching_node',
+        ),
+        Node(
+            package='mapping',
+            executable='conversion_node',
+        ),
+
+
        ])
 

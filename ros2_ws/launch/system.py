@@ -1,5 +1,6 @@
 from launch import LaunchDescription
 from launch_ros.actions import Node
+from launch.actions import ExecuteProcess
 from ament_index_python.packages import get_package_share_directory
 import os
 
@@ -8,24 +9,19 @@ def generate_launch_description():
       'config',
       'pid.yaml'
     )
-    ekf_config = os.path.join(
-      'config',
-      'ekf.yaml'
-    )
 
     return LaunchDescription([
         Node(
-            package='object_detection',
-            executable='yolo',
-            name='yolo_object_detector',
-            remappings=[
-                ('/sensors/camera/rgb', '/camera/rgb'),
-            ],
+            package='object_detection',        
+            executable='dummy_detector',
         ),
-        
         Node(
-            package='image_proc',
-            executable='depth_labeler',
+            package='hardware_integration',
+            executable='dvl_dummy_driver',
+        ),
+        Node(
+            package='object_detection',
+            executable='image_data_merger',
             remappings=[
                 ('/depth_map', '/camera/depth'),
             ],
@@ -35,27 +31,8 @@ def generate_launch_description():
             executable='mapping_node',
         ),
         Node(
-            package='localization',
-            executable='dead_reckoning',
-        ),
-        Node(
-            package='mission_planning',
-            executable='planner',
-            output='screen'
-        ),
-        Node(
-            package='navigation',
-            executable='navigator',
-        ),
-        Node(
-            package='navigation',
-            executable='motion_planner',
-            #prefix=['gdbserver localhost:3000']
-            #target remote localhost:3000
-        ),
-        Node(
-            package='navigation',
-            executable='motor_cortex',
+            package='mapping',
+            executable='depth_to_pointcloud',
         ),
         Node(
             package='realsense2_camera',
@@ -66,11 +43,24 @@ def generate_launch_description():
             ],
         ),
         Node(
-            package='tf2_ros',
-            executable='static_transform_publisher',
-            name='static_transform_publisher',
-            arguments=['-0.23', '0.0', '0.0', '0.0', '0.0', '0.0', '1.0', 'base_link', 'imu_link'],
-            output='screen'
+            package='mapping',
+            executable='visualizer',
+            remappings=[
+                ('/path_grid', '/voxel_grid'),
+            ],
+        ),
+
+       Node(
+            package='navigation',
+            executable='dead_reckoning',
+        )   ,
+        Node(
+            package='mapping',
+            executable='matching_node',
+        ),
+        Node(
+            package='mapping',
+            executable='conversion_node',
         ),
         Node(
             package='sensor_processing',
@@ -176,12 +166,20 @@ def generate_launch_description():
             executable='pid_combiner',
         ),
         Node(
-            package='hardware_integration',
-            executable='serial_output',
+            package='navigation',
+            executable='navigator',
+        ),
+        Node(
+            package='navigation',
+            executable='motion_planner',
+        ),
+        Node(
+            package='navigation',
+            executable='motor_cortex',
         ),
         Node(
             package='hardware_integration',
-            executable='dvl_driver',
+            executable='serial_output',
         ),
-        ]
-    )
+       ])
+

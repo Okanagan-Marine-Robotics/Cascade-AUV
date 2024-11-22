@@ -2,6 +2,9 @@ cmake_minimum_required(VERSION 3.8)
 project(mapping)
 
 add_compile_options(-O3)
+set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+link_directories("$ENV{OPEN3D_ROOT}/lib")
+set(CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH};$ENV{OPEN3D_ROOT}")
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
@@ -20,26 +23,46 @@ find_package(tf2_geometry_msgs REQUIRED)
 find_package(glfw3 REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(OpenMP REQUIRED)
+find_package(Open3D REQUIRED)
 
 add_executable(mapping_node
  src/mapping_node.cpp
 )
+
+add_executable(matching_node
+ src/matching.cpp
+)
+
+add_executable(conversion_node
+ src/conversion_node.cpp
+)
+
+add_executable(matching_test
+ src/test.cpp
+)
+
 add_executable(depth_to_pointcloud
     src/depth_to_pointcloud.cpp
 )
 add_executable(visualizer 
     src/visualizer.cpp)
 
-add_executable(serialization_test
-    src/serialization_test.cpp)
-
-add_executable(costmap_node
-    src/cost_map_node.cpp)
-
-target_include_directories(serialization_test PUBLIC include)
-
-ament_target_dependencies(mapping_node rclcpp sensor_msgs geometry_msgs cv_bridge message_filters tf2 tf2_ros image_transport tf2_geometry_msgs OpenCV cascade_msgs)
+ament_target_dependencies(mapping_node rclcpp sensor_msgs geometry_msgs tf2 tf2_ros image_transport tf2_geometry_msgs cascade_msgs)
 target_include_directories(mapping_node PUBLIC include)
+target_include_directories(mapping_node PUBLIC /usr/local/include/eigen3)
+
+ament_target_dependencies(matching_node rclcpp sensor_msgs geometry_msgs cascade_msgs)
+target_include_directories(matching_node PUBLIC include)
+target_include_directories(matching_node PUBLIC /usr/local/include/eigen3)
+target_link_libraries(matching_node Open3D Open3D::Open3D)
+
+target_include_directories(matching_test PUBLIC include)
+target_include_directories(matching_test PUBLIC /usr/local/include/eigen3)
+target_link_libraries(matching_test Open3D Open3D::Open3D)
+
+ament_target_dependencies(conversion_node rclcpp sensor_msgs cascade_msgs)
+target_include_directories(conversion_node PUBLIC include)
+target_include_directories(conversion_node PUBLIC /usr/local/include/eigen3)
 
 ament_target_dependencies(depth_to_pointcloud rclcpp sensor_msgs geometry_msgs cv_bridge message_filters tf2 tf2_ros image_transport tf2_geometry_msgs OpenCV cascade_msgs OpenMP)
 target_include_directories(depth_to_pointcloud PUBLIC include)
@@ -49,17 +72,13 @@ ament_target_dependencies(visualizer rclcpp cascade_msgs glfw3 OpenGL tf2 tf2_ge
 target_link_libraries(visualizer ${OPENGL_LIBRARIES} glfw)
 target_include_directories(visualizer PUBLIC include)
 
-ament_target_dependencies(costmap_node rclcpp sensor_msgs geometry_msgs cv_bridge message_filters tf2 tf2_ros image_transport tf2_geometry_msgs OpenCV cascade_msgs)
-target_include_directories(costmap_node PUBLIC include)
-
-
-
 install(TARGETS
     depth_to_pointcloud
     mapping_node
+    matching_node
+    matching_test
+    conversion_node
     visualizer
-    serialization_test
-    costmap_node
     DESTINATION lib/${PROJECT_NAME})
 
 if(BUILD_TESTING)

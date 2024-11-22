@@ -23,7 +23,7 @@ rclcpp::Client<cascade_msgs::srv::Vg2pc>::SharedPtr conversion_client;
 rclcpp::Client<cascade_msgs::srv::Matching>::SharedPtr matching_client;
 bool inserting=false;
 
-double voxel_resolution = 0.02;
+double voxel_resolution = 0.12;
 Bonxai::VoxelGrid<voxelData> grid( voxel_resolution );
 
 void insertSphere(float radius){
@@ -171,7 +171,7 @@ void decayAllVoxels(){//finish this
         accessor.setCellOff(coord);
         return;
     }
-    accessor.value(coord)->confidence *= 0.99;//decay TODO: turn into a parameter, maybe make it a formula based on time
+    accessor.value(coord)->confidence *= 0.997;//decay TODO: turn into a parameter, maybe make it a formula based on time
     };
     grid.forEachCell(lambda);
 }

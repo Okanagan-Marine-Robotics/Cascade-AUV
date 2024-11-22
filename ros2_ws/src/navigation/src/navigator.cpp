@@ -38,6 +38,7 @@ class NavigatorNode : public rclcpp::Node
         }
     private:
         void movement_command_callback(cascade_msgs::msg::MovementCommand msg){
+            RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "received movement command");
             switch(msg.command){
                 case(cascade_msgs::msg::MovementCommand::GO_TO_GATE):
                     go_to_gate(msg.data0);
@@ -149,8 +150,6 @@ class NavigatorNode : public rclcpp::Node
             return *result.get();
         }
 
-
-
         geometry_msgs::msg::Quaternion quaternion_from_rpy(float roll, float pitch, float yaw) {
             // Convert roll, pitch, yaw angles to quaternion
             tf2::Quaternion quat;
@@ -174,7 +173,6 @@ class NavigatorNode : public rclcpp::Node
         rclcpp::Client<cascade_msgs::srv::FindObject>::SharedPtr object_finder_client;
         rclcpp::Client<cascade_msgs::srv::Status>::SharedPtr status_client;
 };
-
 
 int main(int argc, char * argv[])
 {

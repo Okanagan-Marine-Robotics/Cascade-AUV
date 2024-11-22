@@ -18,6 +18,7 @@ using namespace std;
 using namespace cv_bridge;
 
 const float MAX_DIST=8;
+const float MIN_DIST=0.35;
 std::shared_ptr<rclcpp::Node> node;
 rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr cloudPublisher;
 
@@ -58,7 +59,7 @@ void projectDepthImage(const cascade_msgs::msg::ImageWithPose img) {
             unsigned char b = rgb_img.at<cv::Vec3b>(v, u)[2]; 
             float x = depth*0.001;//make this a parameter, although it shouldnt ever change 
 
-            if (x > 0.0 && x < MAX_DIST) {  
+            if (x > MIN_DIST && x < MAX_DIST) {  
                 float y = -x * ((u - cx) * fx_inv); // Calculate real world projection of each pixel
                 float z = x * ((v - cy) * fy_inv); // z is vertical, y is horizontal
 

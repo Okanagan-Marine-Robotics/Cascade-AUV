@@ -22,7 +22,7 @@ class MotionPlannerNode : public rclcpp::Node
     public:
         bool inserted=false;
         MotionPlannerNode() 
-        : Node("motion_planner_node"), costmap(0.2){ 
+        : Node("motion_planner_node"), costmap(0.04){ 
 
         end_pose_subscription = this->create_subscription<cascade_msgs::msg::GoalPose>("/end_goal_pose", 10, std::bind(&MotionPlannerNode::end_pose_callback, this, _1));
 
@@ -43,6 +43,7 @@ class MotionPlannerNode : public rclcpp::Node
         void end_pose_callback(cascade_msgs::msg::GoalPose msg){
             //set end goal pose
             currentEndPoseMsg=msg;
+            RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "got path request");
             haveGoal=true;
             newGoal=true;
         }
@@ -51,8 +52,8 @@ class MotionPlannerNode : public rclcpp::Node
             currentPoseMsg=msg;
             if(haveGoal){
                 currentGoalPose=calculatePath();
+                RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "calculated path");
                 goal_pose_publisher->publish(currentGoalPose);
-
             }
         }
 
@@ -274,11 +275,11 @@ class MotionPlannerNode : public rclcpp::Node
                     float score=current.cost+dist(current,n);
                     //std::array<int, 2>* value_ptr = accessor.value(costmap.posToCoord(n.x, n.y, n.z));
                     if(isDangerousNode(n, accessor))
-                        score+=50*dist(current,n);//to discourage using dangerous nodes, but allowing it if really needed
+                        score+=100*dist(current,n);//to discourage using dangerous nodes, but allowing it if really needed
                     if(score<n.cost){
                         previous[n]=current;
                         n.cost=score;
-                        n.dist=dist(n,goal)*10;
+                        n.dist=dist(n,goal)*dist(n,goal)*50;
                         //if(dist(n,goal)>dist(start,goal)*2)//if we are exploring nodes way far out, terminate to stop infinite looping
                             //reachable=false;//this might trigger early if goal and start are close
                         if(checked.count(n)==0){
@@ -351,7 +352,11 @@ class MotionPlannerNode : public rclcpp::Node
                 //std::string logMessage = "Error :" + std::to_string(start2EndError(std::vector<node>(path.begin()+current,path.begin()+last)));
                 //RCLCPP_INFO(this->get_logger(), logMessage.c_str());
                 current=last;
-                accessor.setValue(costmap.posToCoord(path[current].x,path[current].y,path[current].z), {cascade_msgs::msg::Classes::CHECKPOINT,100});
+                voxelData vd = voxelData(path[current].x, 
+                                        path[current].y, 
+                                        path[current].z,
+                                        2, 100, 0,255,0);
+                accessor.setValue(costmap.posToCoord(path[current].x,path[current].y,path[current].z), vd );
                 gpose temp=gpose();
                 temp.copy_orientation=false;
                 temp.pose.position.x=path[current].x;
@@ -365,11 +370,15 @@ class MotionPlannerNode : public rclcpp::Node
             else{
                 gpose temp=gpose();
                 temp.copy_orientation=true;
-                temp.pose=currentEndPoseMsg.pose;//if already at goal or failure to calculate path, then just stay where it is
+                temp.pose=currentPoseMsg.pose;//if already at goal or failure to calculate path, then just stay where it is
                 result=temp;
             }
-            for(node n: path){
-                accessor.setCellOn(costmap.posToCoord(n.x,n.y,n.z), {cascade_msgs::msg::Classes::PATH,100});
+            for(node n: path){ 
+                voxelData vd = voxelData(n.x, 
+                                        n.y, 
+                                        n.z,
+                                        1, 100, 255,0,0);
+                accessor.setCellOn(costmap.posToCoord(n.x,n.y,n.z), vd);
             }
             
             //insert the path nodes into the costmap and publish under /path_grid

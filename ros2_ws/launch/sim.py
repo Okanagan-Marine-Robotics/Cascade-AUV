@@ -34,16 +34,15 @@ def generate_launch_description():
             package='mapping',
             executable='depth_to_pointcloud',
         ),
-        Node(
-            package='realsense2_camera',
-            executable='realsense2_camera_node',
+                Node(
+            package='mapping',
+            executable='visualizer',
             remappings=[
-                ('/camera/camera/depth/image_rect_raw', '/camera/depth'),
-                ('/camera/camera/color/image_raw', '/camera/rgb'),
+                ('/path_grid', '/voxel_grid'),
             ],
         ),
 
-       Node(
+        Node(
             package='navigation',
             executable='dead_reckoning',
         )   ,
@@ -171,8 +170,9 @@ def generate_launch_description():
             executable='motor_cortex',
         ),
         Node(
-            package='hardware_integration',
-            executable='serial_output',
+            package='sensor_processing',
+            executable='sim_adapter',
         ),
+
        ])
 

@@ -1,0 +1,12 @@
+translation directions:
+positive x is forward
+positive y is left
+positive z is up
+positive yaw is clockwise
+
+motor names:
+bro = back right outer
+bri = back right inner
+flo = front left outer
+etc etc
+

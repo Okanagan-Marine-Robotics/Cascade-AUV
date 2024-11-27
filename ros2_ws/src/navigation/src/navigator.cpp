@@ -27,13 +27,13 @@ class NavigatorNode : public rclcpp::Node
             command_subscription = this->create_subscription<cascade_msgs::msg::MovementCommand>("/movement_command", 10, std::bind(&NavigatorNode::movement_command_callback, this, _1));
             pose_subscription = this->create_subscription<geometry_msgs::msg::PoseStamped>("/pose", 10, std::bind(&NavigatorNode::pose_callback, this, _1));
 
-            pose_publisher = this->create_publisher<cascade_msgs::msg::GoalPose>("/end_goal_pose", 10);
+            pose_publisher = this->create_publisher<cascade_msgs::msg::GoalPose>("/current_goal_pose", 10);
 
             status_service=this->create_service<cascade_msgs::srv::Status>("navigator_status", std::bind(&NavigatorNode::status_callback, this, std::placeholders::_1, std::placeholders::_2));
 
             subNode = rclcpp::Node::make_shared("_navigator_client");
             object_finder_client=subNode->create_client<cascade_msgs::srv::FindObject>("find_object");
-            status_client=subNode->create_client<cascade_msgs::srv::Status>("motion_planner_status");
+            status_client=subNode->create_client<cascade_msgs::srv::Status>("motor_cortex_status");
             //sendObjectRequest();
         }
     private:

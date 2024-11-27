@@ -17,7 +17,7 @@ def generate_launch_description():
         ),
         Node(
             package='hardware_integration',
-            executable='dvl_dummy_driver',
+            executable='dvl_driver',
         ),
         Node(
             package='object_detection',
@@ -42,13 +42,6 @@ def generate_launch_description():
                 ('/camera/camera/color/image_raw', '/camera/rgb'),
             ],
         ),
-        Node(
-            package='mapping',
-            executable='visualizer',
-            remappings=[
-                ('/path_grid', '/voxel_grid'),
-            ],
-        ),
        Node(
             package='navigation',
             executable='dead_reckoning',
@@ -61,7 +54,5 @@ def generate_launch_description():
             package='mapping',
             executable='conversion_node',
         ),
-
-
        ])
 

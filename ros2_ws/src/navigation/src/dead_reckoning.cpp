@@ -33,7 +33,7 @@ class DeadReckoningNode : public rclcpp::Node{
 	    	pose_publisher = this->create_publisher<geometry_msgs::msg::PoseStamped>("/pose", 10);
 	    	sway_publisher = this->create_publisher<cascade_msgs::msg::SensorReading>("/PID/sway/actual", 10);
             surge_subscriber.subscribe(this, "PID/surge/actual");
-            sway_subscriber.subscribe(this, "PID/sway/raw");
+            sway_subscriber.subscribe(this, "PID/sway/actual");
             heave_subscriber.subscribe(this, "PID/heave/actual");
             sync_ = std::make_shared<message_filters::Synchronizer<SyncPolicy>>(SyncPolicy(10), surge_subscriber,sway_subscriber,heave_subscriber);
             sync_->registerCallback(std::bind(&DeadReckoningNode::linear_velocity_callback, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
@@ -99,6 +99,7 @@ class DeadReckoningNode : public rclcpp::Node{
         pitch_msg.header.stamp=msg.header.stamp;
         yaw_msg.header.stamp=msg.header.stamp;
         pose_msg.header.stamp=msg.header.stamp;
+        sway_msg.header.stamp=msg.header.stamp;
         pose_msg.header.frame_id="map";
 
 		pitch_publisher -> publish(pitch_msg);
@@ -106,7 +107,7 @@ class DeadReckoningNode : public rclcpp::Node{
 		yaw_publisher   -> publish(yaw_msg);
         pose_publisher  -> publish(pose_msg);
 
-		sway_publisher -> publish(sway_msg);
+		//sway_publisher -> publish(sway_msg);
 	}
 
 	void linear_velocity_callback(const cascade_msgs::msg::SensorReading::ConstSharedPtr surge_msg, const cascade_msgs::msg::SensorReading::ConstSharedPtr sway_msg, const cascade_msgs::msg::SensorReading::ConstSharedPtr heave_msg) {

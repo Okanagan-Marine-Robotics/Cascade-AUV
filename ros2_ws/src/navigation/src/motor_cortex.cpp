@@ -164,7 +164,8 @@ class MotorCortexNode : public rclcpp::Node
             
             geometry_msgs::msg::Vector3 relative_translation = calculateRelativeTranslation(currentPoseMsg.pose,currentGoalPoseMsg.pose);
             float trig_dist = sqrt(relative_translation.x*relative_translation.x + relative_translation.y*relative_translation.y + relative_translation.z*relative_translation.z);
-            if(trig_dist<1){//TODO make this a parameter
+            float xy_trig_dist = sqrt(relative_translation.x*relative_translation.x + relative_translation.y*relative_translation.y);
+            if(xy_trig_dist<1){//TODO make this a parameter
                 //if  very close to goal, dont try to rotate
                 if(!holdMode){
                     holdYaw=yaw_from_pose(currentPoseMsg.pose);

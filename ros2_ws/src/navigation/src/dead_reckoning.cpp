@@ -31,7 +31,7 @@ class DeadReckoningNode : public rclcpp::Node{
 		    pitch_publisher = this->create_publisher<cascade_msgs::msg::SensorReading>("PID/pitch/actual", 10);
 	    	yaw_publisher = this->create_publisher<cascade_msgs::msg::SensorReading>("PID/yaw/actual", 10);
 	    	pose_publisher = this->create_publisher<geometry_msgs::msg::PoseStamped>("/pose", 10);
-	    	sway_publisher = this->create_publisher<cascade_msgs::msg::SensorReading>("/PID/sway/actual", 10);
+	    	//sway_publisher = this->create_publisher<cascade_msgs::msg::SensorReading>("/PID/sway/actual", 10);
             surge_subscriber.subscribe(this, "PID/surge/actual");
             sway_subscriber.subscribe(this, "PID/sway/actual");
             heave_subscriber.subscribe(this, "PID/heave/actual");

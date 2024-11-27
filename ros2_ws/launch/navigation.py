@@ -12,48 +12,21 @@ def generate_launch_description():
 
     return LaunchDescription([
         Node(
-            package='object_detection',        
-            executable='dummy_detector',
-        ),
-        Node(
             package='hardware_integration',
             executable='dvl_dummy_driver',
         ),
         Node(
-            package='object_detection',
-            executable='image_data_merger',
+            package='realsense2_camera',
+            executable='realsense2_camera_node',
             remappings=[
-                ('/depth_map', '/camera/depth'),
+                ('/camera/camera/depth/image_rect_raw', '/camera/depth'),
+                ('/camera/camera/color/image_raw', '/camera/rgb'),
             ],
         ),
-        Node(
-            package='mapping',
-            executable='mapping_node',
-        ),
-        Node(
-            package='mapping',
-            executable='depth_to_pointcloud',
-        ),
-                Node(
-            package='mapping',
-            executable='visualizer',
-            remappings=[
-                ('/path_grid', '/voxel_grid'),
-            ],
-        ),
-
-        Node(
+       Node(
             package='navigation',
             executable='dead_reckoning',
         )   ,
-        Node(
-            package='mapping',
-            executable='matching_node',
-        ),
-        Node(
-            package='mapping',
-            executable='conversion_node',
-        ),
         Node(
             package='sensor_processing',
             executable='pid',
@@ -163,16 +136,11 @@ def generate_launch_description():
         ),
         Node(
             package='navigation',
-            executable='motion_planner',
-        ),
-        Node(
-            package='navigation',
             executable='motor_cortex',
         ),
         Node(
-            package='sensor_processing',
-            executable='sim_adapter',
+            package='hardware_integration',
+            executable='serial_output',
         ),
-
        ])
 

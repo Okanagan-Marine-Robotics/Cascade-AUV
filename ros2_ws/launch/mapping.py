@@ -17,7 +17,7 @@ def generate_launch_description():
         ),
         Node(
             package='hardware_integration',
-            executable='dvl_dummy_driver',
+            executable='dvl_driver',
         ),
         Node(
             package='object_detection',

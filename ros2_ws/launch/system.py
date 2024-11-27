@@ -42,13 +42,6 @@ def generate_launch_description():
                 ('/camera/camera/color/image_raw', '/camera/rgb'),
             ],
         ),
-        Node(
-            package='mapping',
-            executable='visualizer',
-            remappings=[
-                ('/path_grid', '/voxel_grid'),
-            ],
-        ),
 
        Node(
             package='navigation',

@@ -13,7 +13,7 @@ def generate_launch_description():
     return LaunchDescription([
         Node(
             package='hardware_integration',
-            executable='dvl_dummy_driver',
+            executable='dvl_driver',
         ),
         Node(
             package='realsense2_camera',

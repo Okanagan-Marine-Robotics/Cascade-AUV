@@ -7,13 +7,13 @@ yaw_pid_controller:
 pitch_pid_controller:
   ros__parameters:
     kI: 0.0
-    kP: 0.3
+    kP: 0.0
     kD: 0.0
     bias: 0.0
 roll_pid_controller:
   ros__parameters:
     kI: 0.0
-    kP: 0.3
+    kP: 0.0
     kD: 0.0
     bias: 0.0
 surge_pid_controller:

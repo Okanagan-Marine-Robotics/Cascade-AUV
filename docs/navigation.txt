@@ -2,7 +2,7 @@ translation directions:
 positive x is forward
 positive y is left
 positive z is up
-positive yaw is clockwise
+positive yaw is counterclockwise
 
 motor names:
 bro = back right outer
